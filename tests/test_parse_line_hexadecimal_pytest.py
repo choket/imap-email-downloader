@@ -11,6 +11,7 @@ def test_hexadecimal():
             if credentials:
                 password = credentials["password"]
                 assert not re.match(r"^[0-9a-f]{16,}$", password, re.IGNORECASE)
+                print(password)
 
 
 if __name__ == '__main__':

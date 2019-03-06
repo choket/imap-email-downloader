@@ -11,9 +11,9 @@ def parse_line(line, include_username=False, delimiter=":"):
     data_parts = line.split(delimiter)
     data_parts = [part for part in data_parts if part]  # Removes empty parts
 
-    if len(data_parts) == 2:
-        username = data_parts[0].split("@")[0] if include_username else None
-        return {"email": data_parts[0], "password": data_parts[1], "username": username}
+    # if len(data_parts) == 2:
+    #     username = data_parts[0].split("@")[0] if include_username else None
+    #     return {"email": data_parts[0], "password": data_parts[1], "username": username}
 
     email = None
     password = None
