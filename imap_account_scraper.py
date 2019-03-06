@@ -56,10 +56,7 @@ def _count_lines(filename):
     return lines
 
 
-
 def scrape_emails(username_or_email, password=None, host=None, port=None, use_ssl=False, login_only=False, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
-    # TODO implement ability to just check whether login details are valid and don't download the emails
-
     timeout_errors = (socket.timeout, TimeoutError)
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
