@@ -1,4 +1,3 @@
-import server_login
 import imaplib
 import time
 
@@ -43,17 +42,3 @@ def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callb
             callback_function(i, *callback_arguments, **callback_kw_arguments)
 
         time.sleep(sleep_timer)
-
-
-def main():
-    server = server_login.server_login(
-        username_or_email="svetlana-sk",
-        password="magdalena",
-        host="mail.net.mk"
-    )
-
-    email_listen(server, "INBOX", "FROM microsoft", end=" ")
-
-
-if __name__ == '__main__':
-    main()
