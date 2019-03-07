@@ -9,7 +9,7 @@ from parse_credentials_from_line import parse_line
 import os
 import time
 import socket
-from server_connect import email_scraper_errors, login_error, connection_error, host_missing, server_error, server_connect
+from server_login import email_scraper_errors, login_error, connection_error, host_missing, server_error, server_login
 
 class permission_error(email_scraper_errors): pass
 
