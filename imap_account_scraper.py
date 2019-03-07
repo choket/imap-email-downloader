@@ -9,38 +9,9 @@ from parse_credentials_from_line import parse_line
 import os
 import time
 import socket
+from server_connect import email_scraper_errors, login_error, connection_error, host_missing, server_error, server_connect
 
-
-class email_scraper_errors(Exception): pass
 class permission_error(email_scraper_errors): pass
-
-
-class host_missing(email_scraper_errors):
-
-    def __init__(self, host, message):
-        self.host = host
-        self.message = message
-
-
-class connection_error(email_scraper_errors):
-
-    def __init__(self, host, message):
-        self.host = host
-        self.message = message
-
-
-class login_error(email_scraper_errors):
-
-    def __init__(self, username, password, message):
-        self.username = username
-        self.password = password
-        self.message = message
-
-
-class server_error(email_scraper_errors):
-
-    def __init__(self, message):
-        self.message = message
 
 
 def _count_lines(filename):
