@@ -33,6 +33,8 @@ class server_error(email_scraper_errors):
 
 
 def server_login(username_or_email, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False):
+    # TODO implement username:password@domain.tld login capability
+
     timeout_errors = (socket.timeout, TimeoutError)
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 

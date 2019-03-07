@@ -300,7 +300,7 @@ def main():
 
 
     arg_parser.add_argument("-h", "--host", dest="host",
-                            help="IP or full domain name of the server")  # TODO implement username:password@domain.tld login capability
+                            help="IP or full domain name of the server")
     arg_parser.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
                             help="If connecting to host fails, try common variations of the host such as mail.host and imap.host")
 
