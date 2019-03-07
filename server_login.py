@@ -99,4 +99,3 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
         raise login_error(username_or_email, password, msg)
 
     return server
-

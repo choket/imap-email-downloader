@@ -33,77 +33,24 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
 
     socket.setdefaulttimeout(0.5)
 
-    # try:
-    if host is None:
-        if "@" in username_or_email:
-            host = username_or_email.split("@")[1]
-        else:
-            msg = "Host must be supplied when using just a username and not a full email address"
-            sys.stderr.write(msg)
-            raise host_missing(host, msg)
-
-    host = host.replace("http://", "").replace("https://", "")  # TODO check if removing the schema is even needed
-
     if "@" in username_or_email:
         username = username_or_email.split("@")[0]
     else:
         username = username_or_email
 
-    if port is None:
-        if use_ssl:
-            port = 993
-        else:
-            port = 143
-
-    possible_hosts = (host, "imap." + host, "mail." + host)
-    for test_host in possible_hosts:
-        try:
-            if use_ssl:
-                server = imaplib.IMAP4_SSL(test_host, port=port)
-            else:
-                server = imaplib.IMAP4(test_host, port=port)
-
-            host = test_host
-            break
-        except (ConnectionRefusedError, socket.gaierror, *timeout_errors, *imap_server_errors) as error:
-            sys.stderr.write(str(error) + "\n")
-            msg = "Error connecting to server: {}\n".format(test_host)
-            sys.stdout.write(msg)
-
-
-
-            if not try_common_hosts:
-                raise connection_error(test_host, msg)
-
-            if test_host == host:
-                sys.stderr.write("Trying common server variations\n")
-            elif test_host == possible_hosts[-1]:
-                sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
-                raise connection_error(test_host, msg)
+    server = server_login(
+        username_or_email=username_or_email,
+        password=password,
+        host=host,
+        port=port,
+        use_ssl=use_ssl,
+        try_common_hosts=try_common_hosts,
+        timeout=0.1  # TODO refactor this magic number
+    )
 
     if output_dir is None:
         output_dir = host
 
-    if password is None:
-        password = getpass.getpass()
-
-    try:
-        server.enable("UTF-8=ACCEPT")
-    except (*imap_server_errors, AttributeError):
-        # Used to handle utf-8 usernames and passwords
-        # Manually setting this in case server.enable("UTF8=ACCEPT") fails which can happen because some old servers
-        # either don't support ENABLE command, or don't list utf-8 in their capabilities() but can still handle it
-        server._encoding = "utf-8"
-
-
-    server.sock.settimeout(0.1)
-
-    try:
-        server.login(username, password)
-    except (*timeout_errors, *imap_server_errors):
-        msg = "Incorrect details | {}:{}\n".format(username, password)
-        sys.stdout.write(msg)
-        raise login_error(username, password, msg)
 
 
     if login_only:
