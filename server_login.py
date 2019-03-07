@@ -1,6 +1,7 @@
 import imaplib
 import sys
 import socket
+import getpass
 
 class email_scraper_errors(Exception): pass
 
@@ -92,6 +93,9 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
         server._encoding = "utf-8"
 
     server.sock.settimeout(0.1)
+
+    if password is None:
+        password = getpass.getpass()
 
     try:
         server.login(username, password)
