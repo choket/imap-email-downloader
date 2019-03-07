@@ -28,10 +28,9 @@ def _count_lines(filename):
 
 
 def scrape_emails(username_or_email, password=None, host=None, port=None, use_ssl=False, login_only=False, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
-    timeout_errors = (socket.timeout, TimeoutError)
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
-    socket.setdefaulttimeout(0.5)
+    socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
 
     if "@" in username_or_email:
         username = username_or_email.split("@")[0]
@@ -48,16 +47,15 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
         timeout=0.1  # TODO refactor this magic number
     )
 
+    host = server.host
+
     if output_dir is None:
         output_dir = host
-
-
 
     if login_only:
         if verbosity_level >= 1:
             sys.stdout.write("Valid credentials | {}:{}\n".format(username_or_email, password))
         return True
-
 
     if verbosity_level >= 1:
         sys.stdout.write("Downloading emails of {}\n".format(username))
