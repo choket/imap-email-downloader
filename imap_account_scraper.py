@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 import imaplib
-from multiprocessing.dummy import Pool as ThreadPool
-from itertools import repeat as i_repeat
-import getpass
 import argparse
 import sys
 from parse_credentials_from_line import parse_line
