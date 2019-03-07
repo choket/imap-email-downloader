@@ -123,7 +123,7 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
             # raise server_error(msg)
             continue
 
-        emails = emails_data[0].split()
+        emails = emails_data[0].decode().split()
 
         # TODO clean up all these verbosity checks
         if verbosity_level >= 3:
@@ -132,8 +132,6 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
             sys.stdout.flush()
 
         for i in emails:
-            i = i.decode()  # Original variable is bytes, not string
-
             if verbosity_level == 2:
                 sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, len(mailboxes), mailbox, num_emails, i, num_emails))
                 sys.stdout.flush()
