@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-import imaplib
 import argparse
-import sys
-from parse_credentials_from_line import parse_line
+import imaplib
 import os
-import time
 import socket
-from server_login import email_scraper_errors, login_error, connection_error, host_missing, server_error, server_login
+import sys
+import time
+
+from parse_credentials_from_line import parse_line
+from server_login import email_scraper_errors, login_error, connection_error, server_error, server_login
+
 
 class permission_error(email_scraper_errors): pass
 
@@ -225,6 +227,9 @@ def download_emails_with_file(host, file, port, use_ssl, login_only, file_delimi
                         except login_error:
                             pass
                         else:
+                            if login_only and valid_details:
+                                sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
+
                             valid_hosts.add(test_host)
 
                         break
