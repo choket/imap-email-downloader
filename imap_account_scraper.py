@@ -183,6 +183,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
     with open(file, "r", encoding="utf-8", errors="ignore") as fh:
         for _ in range(start_offset):
+            print("skipped")
             next(fh)
         for i, line in enumerate(fh):
             credentials = parse_line(line, delimiter=file_delimiter)
@@ -228,8 +229,10 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                             continue
                         except login_error:
                             pass
+                        except KeyboardInterrupt:
+                            raise
                         except:
-                            sys.stderr.write("An unhandled exception occurred!\n")
+                            sys.stderr.write("\nAn unhandled exception occurred!\n")
                         else:
                             if login_only and valid_details:
                                 sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
