@@ -1,7 +1,8 @@
-import imaplib
-import sys
-import socket
 import getpass
+import imaplib
+import socket
+import sys
+
 
 class email_scraper_errors(Exception): pass
 
@@ -64,7 +65,7 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
                 server = imaplib.IMAP4(test_host, port=port)
 
             break
-        except (ConnectionRefusedError, socket.gaierror, *timeout_errors, *imap_server_errors) as error:
+        except (ConnectionRefusedError, ConnectionResetError, socket.gaierror, *timeout_errors, *imap_server_errors) as error:
             sys.stderr.write(str(error) + "\n")
             msg = "Error connecting to server: {}\n".format(test_host)
             sys.stdout.write(msg)
