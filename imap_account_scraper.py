@@ -186,6 +186,8 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
             print("skipped")
             next(fh)
         for i, line in enumerate(fh):
+            i += 1 + start_offset
+
             credentials = parse_line(line, delimiter=file_delimiter)
             if credentials is not None:
                 if original_host is None:
