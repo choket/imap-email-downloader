@@ -171,7 +171,7 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
                 sys.stdout.write("\n")  # Print newline to compensate for the last \r which will cause the next line to be overwritten
 
 
-def download_emails_with_file(host, file, port, use_ssl, login_only, file_delimiter, try_common_hosts, mark_as_read, email_parts, output_dir, verbosity_level):
+def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
     # TODO add a statistic to track how many successful login attempts
 
     invalid_hosts = set()
@@ -309,9 +309,9 @@ def main():
 
     try:
         if file:
-            download_emails_with_file(
-                host=host,
+            batch_scrape(
                 file=file,
+                host=host,
                 port=port,
                 use_ssl=ssl,
                 login_only=login_only,
