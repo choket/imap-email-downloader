@@ -171,7 +171,7 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
                 sys.stdout.write("\n")  # Print newline to compensate for the last \r which will cause the next line to be overwritten
 
 
-def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_offset=0, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
     # TODO add a statistic to track how many successful login attempts
 
     invalid_hosts = set()
@@ -182,6 +182,8 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
     num_lines = _count_lines(file)
 
     with open(file, "r", encoding="utf-8", errors="ignore") as fh:
+        for _ in range(start_offset):
+            next(fh)
         for i, line in enumerate(fh):
             credentials = parse_line(line, delimiter=file_delimiter)
             if credentials is not None:
@@ -264,6 +266,9 @@ def main():
                             help="Password. If omitted you will be prompted to enter it when connecting to the server")
     arg_parser.add_argument("-d", "--file-delimiter", default=":",
                             help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+    arg_parser.add_argument("-O", "--offset", "--start-offset", dest="start_offset", default=0,
+                            help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+
     arg_parser.add_argument("-t", "--threads", default=3,
                             help="Number of threads to use when downloading emails from multiple accounts supplied by file credentials.\n" +
                                  "Default is 3. Anything above 5 may not work depending on the server"
@@ -298,6 +303,7 @@ def main():
     common_hosts = args.common_hosts
     file = args.file
     file_delimiter = args.file_delimiter
+    start_offset = int(args.start_offset)
     num_threads = int(args.threads)
     port = args.port
     ssl = args.ssl
@@ -306,6 +312,7 @@ def main():
     email_parts = args.parts
     output_dir = args.output_dir
     verbosity_level = int(args.verbosity_level)
+
 
     try:
         if file:
@@ -316,6 +323,7 @@ def main():
                 use_ssl=ssl,
                 login_only=login_only,
                 file_delimiter=file_delimiter,
+                start_offset=start_offset,
                 try_common_hosts=common_hosts,
                 mark_as_read=mark_as_read,
                 email_parts=email_parts,
