@@ -226,6 +226,8 @@ def download_emails_with_file(host, file, port, use_ssl, login_only, file_delimi
                             continue
                         except login_error:
                             pass
+                        except:
+                            sys.stderr.write("An unhandled exception occurred!\n")
                         else:
                             if login_only and valid_details:
                                 sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
