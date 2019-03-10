@@ -2,7 +2,7 @@ import imaplib
 import time
 
 
-def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callback_function=print, *callback_arguments, **callback_kw_arguments):
+def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callback_function=print, callback_arguments=(), callback_kw_arguments={}):
     """
 
 
