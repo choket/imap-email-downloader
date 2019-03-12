@@ -27,12 +27,9 @@ def _count_lines(filename):
 
 
 def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
-    # TODO factor out the server_login connection so it can be reused when connecting to the same host
-
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
     username_or_email = server.username_or_email
-    password = server.password
 
     if "@" in username_or_email:
         username = username_or_email.split("@")[0]
