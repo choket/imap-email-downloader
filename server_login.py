@@ -34,7 +34,7 @@ class server_error(email_scraper_errors):
         self.message = message
 
 
-def server_login(username_or_email, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, timeout=None):
+def server_login(username_or_email, password=None, no_login=False, host=None, port=None, use_ssl=False, try_common_hosts=False, timeout=None):
     # TODO implement username:password@domain.tld login capability
 
     timeout_errors = (socket.timeout, TimeoutError)
@@ -88,6 +88,9 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
         server._encoding = "utf-8"
 
     server.sock.settimeout(timeout)
+
+    if no_login:
+        return server
 
     if password is None:
         password = getpass.getpass()
