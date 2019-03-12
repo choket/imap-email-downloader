@@ -7,11 +7,15 @@ import sys
 
 class email_scraper_errors(Exception): pass
 
+
 class host_missing(email_scraper_errors):
 
     def __init__(self, host, message):
         self.host = host
         self.message = message
+
+    def __repr__(self):
+        return self.message
 
 
 class connection_error(email_scraper_errors):
@@ -20,6 +24,9 @@ class connection_error(email_scraper_errors):
         self.host = host
         self.message = message
 
+    def __repr__(self):
+        return self.message
+
 
 class login_error(email_scraper_errors):
 
@@ -27,6 +34,10 @@ class login_error(email_scraper_errors):
         self.username = username
         self.password = password
         self.message = message
+
+    def __repr__(self):
+        return self.message
+
 
 
 def server_login(username_or_email=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):

@@ -10,14 +10,13 @@ from parse_credentials_from_line import parse_line
 from server_login import email_scraper_errors, login_error, connection_error, server_login
 
 
-class permission_error(email_scraper_errors): pass
-
-
 class server_error(email_scraper_errors):
 
     def __init__(self, message):
         self.message = message
 
+    def __repr__(self):
+        return self.message
 
 def _count_lines(filename):
     f = open(filename, 'rb')
@@ -55,15 +54,11 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
     try:
         response, mailboxes = server.list()
     except imap_server_errors:
-        msg = "Error getting mailboxes from server\n"
-        sys.stderr.write(msg)
-        raise server_error(msg)
+        raise server_error("Error getting mailboxes from server")
 
 
     if response != "OK":
-        msg = "Error getting mailboxes from server\n"
-        sys.stderr.write(msg)
-        raise server_error(msg)
+        raise server_error("Error getting mailboxes from server")
 
     if email_parts == "all":
         fetch_parts = "BODY[]"
@@ -105,8 +100,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
             try:
                 os.makedirs(mailbox_output_directory)
             except PermissionError:
-                sys.stderr.write("Could not create {}, invalid permissions\n".format(mailbox_output_directory))
-                raise permission_error
+                raise PermissionError("Could not create {}, invalid permissions\n".format(mailbox_output_directory))
 
         response, emails_data = server.search(None, "ALL")
 
@@ -175,6 +169,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
     with open(file, "r", encoding="utf-8", errors="ignore") as fh:
         for _ in range(start_offset):
             next(fh)
+
         for i, line in enumerate(fh):
             i += 1 + start_offset
 
@@ -199,33 +194,16 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                         sys.stdout.write("({}/{}) | ".format(str(i).zfill(len(str(num_lines))), num_lines))
                         sys.stdout.flush()
 
+                        # Connect to the server
                         try:
-                            if not server_connection or server_connection.host != test_host:
-                                server_connection = server_login(
-                                    host=test_host,
-                                    port=port,
-                                    use_ssl=use_ssl,
-                                    no_login=True,
-                                    timeout=0.1  # TODO Refactor this magic number
-                                )
-
-                            try:
-                                server_connection.login(credentials["email"], credentials["password"])
-                            except (socket.timeout, TimeoutError, imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
-                                msg = "Incorrect details | {}:{}\n".format(credentials["email"], credentials["password"])
-                                raise login_error(credentials["email"], credentials["password"], msg)
-                            else:
-                                if login_only:
-                                    break
-
-                            valid_details = scrape_emails(
-                                server=server_connection,
-                                mark_as_read=mark_as_read,
-                                email_parts=email_parts,
-                                output_dir=output_dir,
-                                verbosity_level=verbosity_level
+                            server_connection = server_login(
+                                username_or_email=credentials["email"],
+                                password=credentials["password"],
+                                host=test_host,
+                                port=port,
+                                use_ssl=use_ssl,
+                                timeout=0.5  # TODO Refactor this magic number
                             )
-
                         except connection_error as error:
                             if error.host not in invalid_hosts and error.host not in valid_hosts:
                                 # TODO only add host to invalid hosts if connection_error is socket.gainfo error
@@ -233,17 +211,26 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                                 sys.stderr.write(error.host + " added to invalid hosts")
 
                             continue
-                        except login_error:
-                            pass
-                        except KeyboardInterrupt:
-                            raise
-                        except:
-                            sys.stderr.write("\nAn unhandled exception occurred!\n")
+                        except login_error as error:
+                            sys.stdout.write(error)
+                            continue
                         else:
-                            if login_only and valid_details:
-                                sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
-
                             valid_hosts.add(test_host)
+
+                            if login_only:
+                                break
+
+                        # Download the emails
+                        try:
+                            scrape_emails(
+                                server=server_connection,
+                                mark_as_read=mark_as_read,
+                                email_parts=email_parts,
+                                output_dir=output_dir,
+                                verbosity_level=verbosity_level
+                            )
+                        except (server_error, PermissionError) as error:
+                            sys.stderr.write(repr(error))
 
                         break
 
@@ -324,6 +311,8 @@ def main():
 
 
     try:
+        socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
+
         if file:
             batch_scrape(
                 file=file,
@@ -340,8 +329,6 @@ def main():
                 verbosity_level=verbosity_level
             )
         else:
-            socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
-
             server_connection = server_login(
                 username_or_email=username,
                 password=password,
@@ -352,13 +339,17 @@ def main():
                 timeout=0.1  # TODO refactor this magic number
             )
 
-            scrape_emails(
-                server=server_connection,
-                mark_as_read=mark_as_read,
-                email_parts=email_parts,
-                output_dir=output_dir,
-                verbosity_level=verbosity_level
-            )
+            try:
+                scrape_emails(
+                    server=server_connection,
+                    mark_as_read=mark_as_read,
+                    email_parts=email_parts,
+                    output_dir=output_dir,
+                    verbosity_level=verbosity_level
+                )
+            except email_scraper_errors as error:
+                sys.stdout.write(error + "\n")
+
     except email_scraper_errors:
         pass
 
