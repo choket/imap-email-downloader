@@ -309,26 +309,26 @@ def main():
     output_dir = args.output_dir
     verbosity_level = int(args.verbosity_level)
 
+    socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
 
-    try:
-        socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
 
-        if file:
-            batch_scrape(
-                file=file,
-                host=host,
-                port=port,
-                use_ssl=ssl,
-                login_only=login_only,
-                file_delimiter=file_delimiter,
-                start_offset=start_offset,
-                try_common_hosts=common_hosts,
-                mark_as_read=mark_as_read,
-                email_parts=email_parts,
-                output_dir=output_dir,
-                verbosity_level=verbosity_level
-            )
-        else:
+    if file:
+        batch_scrape(
+            file=file,
+            host=host,
+            port=port,
+            use_ssl=ssl,
+            login_only=login_only,
+            file_delimiter=file_delimiter,
+            start_offset=start_offset,
+            try_common_hosts=common_hosts,
+            mark_as_read=mark_as_read,
+            email_parts=email_parts,
+            output_dir=output_dir,
+            verbosity_level=verbosity_level
+        )
+    else:
+        try:
             server_connection = server_login(
                 username_or_email=username,
                 password=password,
@@ -339,19 +339,16 @@ def main():
                 timeout=0.1  # TODO refactor this magic number
             )
 
-            try:
-                scrape_emails(
-                    server=server_connection,
-                    mark_as_read=mark_as_read,
-                    email_parts=email_parts,
-                    output_dir=output_dir,
-                    verbosity_level=verbosity_level
-                )
-            except email_scraper_errors as error:
-                sys.stdout.write(error + "\n")
+            scrape_emails(
+                server=server_connection,
+                mark_as_read=mark_as_read,
+                email_parts=email_parts,
+                output_dir=output_dir,
+                verbosity_level=verbosity_level
+            )
+        except email_scraper_errors as error:
+            sys.stderr.write(error)
 
-    except email_scraper_errors:
-        pass
 
 
 if __name__ == "__main__":
