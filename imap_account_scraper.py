@@ -26,7 +26,7 @@ def _count_lines(filename):
     return lines
 
 
-def scrape_emails(server, login_only=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
     # TODO factor out the server_login connection so it can be reused when connecting to the same host
 
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
@@ -43,11 +43,6 @@ def scrape_emails(server, login_only=False, mark_as_read=False, email_parts="all
 
     if output_dir is None:
         output_dir = host
-
-    if login_only:
-        if verbosity_level >= 1:
-            sys.stdout.write("Valid credentials | {}:{}\n".format(username_or_email, password))
-        return True
 
     if verbosity_level >= 1:
         sys.stdout.write("Downloading emails of {}\n".format(username))
@@ -202,13 +197,29 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                         sys.stdout.flush()
 
                         try:
+                            if not server_connection or server_connection.host != test_host:
+                                server_connection = server_login(
+                                    username_or_email=credentials["email"],
+                                    password=credentials["password"],
+                                    host=test_host,
+                                    port=port,
+                                    use_ssl=use_ssl,
+                                    no_login=True,
+                                    timeout=0.1  # TODO Refactor this magic number
+                                )
+
+                            if login_only:
+                                try:
+                                    server_connection.login(credentials["email"], credentials["password"])
+                                except (socket.timeout, TimeoutError, imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
+                                    msg = "Incorrect details | {}:{}\n".format(credentials["email"], credentials["password"])
+                                    sys.stdout.write(msg)
+                                    raise login_error(credentials["email"], credentials["password"], msg)
+                                else:
+                                    break
+
                             valid_details = scrape_emails(
-                                username_or_email=credentials["email"],
-                                password=credentials["password"],
-                                host=test_host,
-                                port=port,
-                                use_ssl=use_ssl,
-                                login_only=login_only,
+                                server=server_connection,
                                 mark_as_read=mark_as_read,
                                 email_parts=email_parts,
                                 output_dir=output_dir,
