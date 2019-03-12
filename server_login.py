@@ -14,7 +14,7 @@ class host_missing(email_scraper_errors):
         self.host = host
         self.message = message
 
-    def __repr__(self):
+    def __str__(self):
         return self.message
 
 
@@ -24,7 +24,7 @@ class connection_error(email_scraper_errors):
         self.host = host
         self.message = message
 
-    def __repr__(self):
+    def __str__(self):
         return self.message
 
 
@@ -35,7 +35,7 @@ class login_error(email_scraper_errors):
         self.password = password
         self.message = message
 
-    def __repr__(self):
+    def __str__(self):
         return self.message
 
 
@@ -70,7 +70,6 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 
             break
         except (ConnectionRefusedError, ConnectionResetError, socket.gaierror, *timeout_errors, *imap_server_errors) as error:
-            # sys.stderr.write(str(error) + "\n")
             msg = "Error connecting to server: {}\n".format(test_host)
             sys.stdout.write(msg)
 
@@ -102,8 +101,7 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
     try:
         server.login(username_or_email, password)
     except (*timeout_errors, *imap_server_errors):
-        msg = "Incorrect details | {}:{}\n".format(username_or_email, password)
-        sys.stdout.write(msg)
+        msg = "Incorrect details | {}:{}".format(username_or_email, password)
         raise login_error(username_or_email, password, msg)
 
     setattr(server, "username_or_email", username_or_email)
@@ -155,7 +153,7 @@ def main():
     except login_error:
         sys.stdout.write("Invalid!\n")
     except email_scraper_errors as error:
-        sys.stdout.write(error.message + "\n")
+        sys.stdout.write(str(error) + "\n")
     else:
         sys.stdout.write("Valid!\n")
 

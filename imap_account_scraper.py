@@ -15,7 +15,7 @@ class server_error(email_scraper_errors):
     def __init__(self, message):
         self.message = message
 
-    def __repr__(self):
+    def __str__(self):
         return self.message
 
 def _count_lines(filename):
@@ -212,7 +212,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
                             continue
                         except login_error as error:
-                            sys.stdout.write(error)
+                            sys.stdout.write(str(error) + "\n")
                             continue
                         else:
                             valid_hosts.add(test_host)
@@ -230,7 +230,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                                 verbosity_level=verbosity_level
                             )
                         except (server_error, PermissionError) as error:
-                            sys.stderr.write(repr(error))
+                            sys.stderr.write(str(error) + "\n")
 
                         break
 
@@ -347,8 +347,7 @@ def main():
                 verbosity_level=verbosity_level
             )
         except email_scraper_errors as error:
-            sys.stderr.write(error)
-
+            sys.stderr.write(str(error) + "\n")
 
 
 if __name__ == "__main__":
