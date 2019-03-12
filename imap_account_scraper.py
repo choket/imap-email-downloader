@@ -27,6 +27,8 @@ def _count_lines(filename):
 
 
 def scrape_emails(username_or_email, password=None, host=None, port=None, use_ssl=False, login_only=False, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+    # TODO factor out the server_login connection so it can be reused when connecting to the same host
+
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
     socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
@@ -172,7 +174,7 @@ def scrape_emails(username_or_email, password=None, host=None, port=None, use_ss
 
 
 def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_offset=0, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
-    # TODO add a statistic to track how many successful login attempts
+    # TODO add a statistic to track how many error connecting to host, incorrect login details and successful login attempts
 
     invalid_hosts = set()
     valid_hosts = set()
