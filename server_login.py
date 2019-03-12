@@ -35,7 +35,7 @@ class server_error(email_scraper_errors):
         self.message = message
 
 
-def server_login(username_or_email, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
+def server_login(username_or_email=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
     # TODO implement username:password@domain.tld login capability
 
     timeout_errors = (socket.timeout, TimeoutError)
@@ -45,9 +45,7 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
         if "@" in username_or_email:
             host = username_or_email.split("@")[1]
         else:
-            msg = "Host must be supplied when using just a username and not a full email address"
-            sys.stderr.write(msg)
-            raise host_missing(host, msg)
+            raise host_missing(host, "Host must be supplied when using just a username and not a full email address")
 
     host = host.replace("http://", "").replace("https://", "")  # TODO check if removing the schema is even needed
 
@@ -67,7 +65,7 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
 
             break
         except (ConnectionRefusedError, ConnectionResetError, socket.gaierror, *timeout_errors, *imap_server_errors) as error:
-            sys.stderr.write(str(error) + "\n")
+            # sys.stderr.write(str(error) + "\n")
             msg = "Error connecting to server: {}\n".format(test_host)
             sys.stdout.write(msg)
 
@@ -146,12 +144,13 @@ def main():
             host=host,
             port=port,
             use_ssl=ssl,
-            try_common_hosts=common_hosts
+            try_common_hosts=common_hosts,
+            timeout=0.1  # TODO Refactor this magic number
         )
     except login_error:
         sys.stdout.write("Invalid!\n")
-    except (email_scraper_errors):
-        pass
+    except email_scraper_errors as error:
+        sys.stdout.write(error.message + "\n")
     else:
         sys.stdout.write("Valid!\n")
 

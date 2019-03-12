@@ -196,8 +196,6 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                         try:
                             if not server_connection or server_connection.host != test_host:
                                 server_connection = server_login(
-                                    username_or_email=credentials["email"],
-                                    password=credentials["password"],
                                     host=test_host,
                                     port=port,
                                     use_ssl=use_ssl,
@@ -205,14 +203,13 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                                     timeout=0.1  # TODO Refactor this magic number
                                 )
 
-                            if login_only:
-                                try:
-                                    server_connection.login(credentials["email"], credentials["password"])
-                                except (socket.timeout, TimeoutError, imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
-                                    msg = "Incorrect details | {}:{}\n".format(credentials["email"], credentials["password"])
-                                    sys.stdout.write(msg)
-                                    raise login_error(credentials["email"], credentials["password"], msg)
-                                else:
+                            try:
+                                server_connection.login(credentials["email"], credentials["password"])
+                            except (socket.timeout, TimeoutError, imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
+                                msg = "Incorrect details | {}:{}\n".format(credentials["email"], credentials["password"])
+                                raise login_error(credentials["email"], credentials["password"], msg)
+                            else:
+                                if login_only:
                                     break
 
                             valid_details = scrape_emails(
@@ -222,6 +219,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
                                 output_dir=output_dir,
                                 verbosity_level=verbosity_level
                             )
+
                         except connection_error as error:
                             if error.host not in invalid_hosts and error.host not in valid_hosts:
                                 # TODO only add host to invalid hosts if connection_error is socket.gainfo error
