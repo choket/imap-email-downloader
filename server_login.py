@@ -102,4 +102,7 @@ def server_login(username_or_email, password=None, no_login=False, host=None, po
         sys.stdout.write(msg)
         raise login_error(username_or_email, password, msg)
 
+    setattr(server, "username_or_email", username_or_email)
+    setattr(server, "password", password)
+
     return server

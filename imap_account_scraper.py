@@ -26,27 +26,18 @@ def _count_lines(filename):
     return lines
 
 
-def scrape_emails(username_or_email, password=None, host=None, port=None, use_ssl=False, login_only=False, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+def scrape_emails(server, login_only=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
     # TODO factor out the server_login connection so it can be reused when connecting to the same host
 
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
-    socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
+    username_or_email = server.username_or_email
+    password = server.password
 
     if "@" in username_or_email:
         username = username_or_email.split("@")[0]
     else:
         username = username_or_email
-
-    server = server_login(
-        username_or_email=username_or_email,
-        password=password,
-        host=host,
-        port=port,
-        use_ssl=use_ssl,
-        try_common_hosts=try_common_hosts,
-        timeout=0.1  # TODO refactor this magic number
-    )
 
     host = server.host
 
@@ -337,14 +328,21 @@ def main():
                 verbosity_level=verbosity_level
             )
         else:
-            scrape_emails(
+            socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
+
+            server_connection = server_login(
                 username_or_email=username,
                 password=password,
                 host=host,
                 port=port,
                 use_ssl=ssl,
-                login_only=login_only,
                 try_common_hosts=common_hosts,
+                timeout=0.1  # TODO refactor this magic number
+            )
+
+            scrape_emails(
+                server=server_connection,
+                login_only=login_only,
                 mark_as_read=mark_as_read,
                 email_parts=email_parts,
                 output_dir=output_dir,
