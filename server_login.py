@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import imaplib
 import socket
@@ -105,3 +106,55 @@ def server_login(username_or_email, password=None, host=None, port=None, use_ssl
     setattr(server, "username_or_email", username_or_email)
 
     return server
+
+
+def main():
+    program_description = "Test whether login credentials are valid on the supplied IMAP server"
+    arg_parser = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+    arg_parser.add_argument('--help', action='help', help='show this help message and exit')
+
+    arg_parser.add_argument("-u", "--user", "--username", dest="username", required=True,
+                                  help="Username. Can either be the full `username@domain.tld` or just the `username`")
+
+    arg_parser.add_argument("-p", "--pass", "--password", dest="password",
+                            help="Password. If omitted you will be prompted to enter it when connecting to the server")
+
+    arg_parser.add_argument("-h", "--host", dest="host",
+                            help="IP or full domain name of the server")
+
+    arg_parser.add_argument("-P", "--port",
+                            help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
+
+    arg_parser.add_argument("-s", "--ssl", action="store_true",
+                            help="Use SSL when connecting to the server")
+
+    arg_parser.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
+                            help="If connecting to host fails, try common variations of the host such as mail.host and imap.host")
+
+    args = arg_parser.parse_args()
+    username = args.username
+    password = args.password
+    host = args.host
+    port = args.port
+    ssl = args.ssl
+    common_hosts = args.common_hosts
+
+    try:
+        server_login(
+            username_or_email=username,
+            password=password,
+            host=host,
+            port=port,
+            use_ssl=ssl,
+            try_common_hosts=common_hosts
+        )
+    except login_error:
+        sys.stdout.write("Invalid!\n")
+    except (email_scraper_errors):
+        pass
+    else:
+        sys.stdout.write("Valid!\n")
+
+
+if __name__ == '__main__':
+    main()

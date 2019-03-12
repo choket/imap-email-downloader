@@ -350,7 +350,6 @@ def main():
 
             scrape_emails(
                 server=server_connection,
-                login_only=login_only,
                 mark_as_read=mark_as_read,
                 email_parts=email_parts,
                 output_dir=output_dir,
