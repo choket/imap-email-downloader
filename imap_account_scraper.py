@@ -7,10 +7,16 @@ import sys
 import time
 
 from parse_credentials_from_line import parse_line
-from server_login import email_scraper_errors, login_error, connection_error, server_error, server_login
+from server_login import email_scraper_errors, login_error, connection_error, server_login
 
 
 class permission_error(email_scraper_errors): pass
+
+
+class server_error(email_scraper_errors):
+
+    def __init__(self, message):
+        self.message = message
 
 
 def _count_lines(filename):

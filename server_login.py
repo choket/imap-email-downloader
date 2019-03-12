@@ -29,12 +29,6 @@ class login_error(email_scraper_errors):
         self.message = message
 
 
-class server_error(email_scraper_errors):
-
-    def __init__(self, message):
-        self.message = message
-
-
 def server_login(username_or_email=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
     # TODO implement username:password@domain.tld login capability
 
