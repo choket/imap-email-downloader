@@ -68,9 +68,8 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 				server = imaplib.IMAP4(test_host, port=port)
 
 			break
-		except (ConnectionRefusedError, ConnectionResetError, socket.gaierror, *timeout_errors, *imap_server_errors):
+		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors):
 			msg = "Error connecting to server: {}\n".format(test_host)
-			sys.stdout.write(msg)
 
 			if not try_common_hosts:
 				raise connection_error(test_host, msg)

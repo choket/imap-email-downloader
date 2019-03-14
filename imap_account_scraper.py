@@ -6,12 +6,20 @@ import socket
 import sys
 import time
 
+from colorama import init as colorama_init
+
 from parse_credentials_from_line import parse_line
 from server_login import email_scraper_errors, login_error, connection_error, server_login
 
 
-class server_error(email_scraper_errors):
+class TerminalColors:
+	red = '\u001b[31m'
+	yellow = '\u001b[33m'
+	green = '\u001b[32m'
+	end = '\033[0m'
 
+
+class server_error(email_scraper_errors):
 	def __init__(self, message):
 		self.message = message
 
@@ -165,13 +173,19 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 	original_host = host
 
 	num_lines = _count_lines(file)
+	num_connection_errors = 0
+	num_incorrect_credentials = 0
+	num_correct_credentials = 0
+
+	# This makes ANSI color codes work on Windows terminals
+	colorama_init()
 
 	with open(file, "r", encoding="utf-8", errors="ignore") as fh:
 		for _ in range(start_offset):
 			next(fh)
 
 		for i, line in enumerate(fh):
-			i += 1 + start_offset
+			i += 1
 
 			credentials = parse_line(line, delimiter=file_delimiter)
 			if credentials is not None:
@@ -191,7 +205,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 				for test_host in possible_hosts:
 					if test_host not in invalid_hosts or test_host in valid_hosts:
 						# Pad the line index to be the same width as the total number of lines
-						sys.stdout.write("({}/{}) | ".format(str(i).zfill(len(str(num_lines))), num_lines))
+						sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
 						sys.stdout.flush()
 
 						# Connect to the server
@@ -210,12 +224,17 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 								invalid_hosts.add(error.host)
 								sys.stderr.write(error.host + " added to invalid hosts")
 
+							num_connection_errors += 1
+
 							continue
 						except login_error as error:
-							sys.stdout.write(str(error) + "\n")
+							sys.stdout.write(str(error))
+							num_incorrect_credentials += 1
+
 							continue
 						else:
 							valid_hosts.add(test_host)
+							num_correct_credentials += 1
 
 							if login_only:
 								break
@@ -230,9 +249,20 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 								verbosity_level=verbosity_level
 							)
 						except (server_error, PermissionError) as error:
-							sys.stderr.write(str(error) + "\n")
+							sys.stderr.write(str(error))
 
 						break
+
+
+				sys.stdout.write(" | {red}{:.2%} {yellow}{:.2%} {green}{:.2%}{end}\n".format(
+					num_connection_errors/i,
+					num_incorrect_credentials/i,
+					num_correct_credentials/i,
+					red=TerminalColors.red,
+					yellow=TerminalColors.yellow,
+					green=TerminalColors.green,
+					end=TerminalColors.end
+				))
 
 
 def main():
