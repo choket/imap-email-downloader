@@ -366,7 +366,7 @@ def main():
 				port=port,
 				use_ssl=ssl,
 				try_common_hosts=common_hosts,
-				timeout=0.1  # TODO refactor this magic number
+				timeout=0.5  # TODO refactor this magic number
 			)
 
 			scrape_emails(
