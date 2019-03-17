@@ -40,8 +40,6 @@ class login_error(email_scraper_errors):
 
 
 def server_login(username_or_email=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
-	# TODO implement username:password@domain.tld login capability
-
 	timeout_errors = (socket.timeout, TimeoutError)
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
@@ -94,7 +92,10 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 		return server
 
 	if password is None:
-		password = getpass.getpass()
+		if ":" in username_or_email:
+			password = username_or_email.split(":")[0]
+		else:
+			password = getpass.getpass()
 
 	try:
 		server.login(username_or_email, password)
