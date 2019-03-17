@@ -147,7 +147,7 @@ def main():
 			port=port,
 			use_ssl=ssl,
 			try_common_hosts=common_hosts,
-			timeout=0.1  # TODO Refactor this magic number
+			timeout=0.5  # TODO Refactor this magic number
 		)
 	except login_error:
 		sys.stdout.write("Invalid!\n")
