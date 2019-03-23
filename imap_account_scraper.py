@@ -214,7 +214,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 						timeout=0.5  # TODO Refactor this magic number
 					)
 				except connection_error as error:
-					sys.stdout.write(str(error))
+					sys.stdout.write(str(error) + "\n")
 
 					if error.host not in invalid_hosts and error.host not in valid_hosts:
 						invalid_hosts.add(error.host)
@@ -222,7 +222,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
 					continue
 				except login_error as error:
-					sys.stdout.write(str(error))
+					sys.stdout.write(str(error) + "\n")
 					continue
 				else:
 					valid_hosts.add(test_host)
@@ -240,7 +240,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 						verbosity_level=verbosity_level
 					)
 				except (server_error, PermissionError) as error:
-					sys.stderr.write(str(error))
+					sys.stderr.write(str(error) + "\n")
 
 				break
 
