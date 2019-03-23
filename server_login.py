@@ -67,7 +67,7 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 
 			break
 		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors):
-			msg = "Error connecting to server: {}\n".format(test_host)
+			msg = "Error connecting to server: {}".format(test_host)
 
 			if not try_common_hosts:
 				raise connection_error(test_host, msg)
