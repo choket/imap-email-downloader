@@ -2,12 +2,9 @@
 import argparse
 import imaplib
 import os
-import shutil
 import socket
 import sys
 import time
-
-from colorama import init as colorama_init
 
 from parse_credentials_from_line import parse_line
 from server_login import email_scraper_errors, login_error, connection_error, server_login
@@ -171,29 +168,19 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 	invalid_hosts = set()
 	valid_hosts = set()
 
-	original_host = host
-
 	num_lines = _count_lines(file)
-	num_connection_errors = 0
-	num_incorrect_credentials = 0
-	num_correct_credentials = 0
 
-	# This makes ANSI color codes work on Windows terminals
-	colorama_init()
-	terminal_width = shutil.get_terminal_size((80, 20))[0]
+	original_host = host
 
 	with open(file, "r", encoding="utf-8", errors="ignore") as fh:
 		for _ in range(start_offset):
 			next(fh)
 
-		valid_credentials_counter = 0
 		for i, line in enumerate(fh):
 
 			credentials = parse_line(line, delimiter=file_delimiter)
 			if credentials is None:
 				continue
-
-			valid_credentials_counter += 1
 
 			if original_host is None:
 				try:
@@ -208,17 +195,12 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 			else:
 				possible_hosts = (host, )
 
-			# Used to calculate the position to align the statistics to the right side of the terminal
-			total_chars_written_to_line = 0
-
 			for test_host in possible_hosts:
 				if test_host in invalid_hosts and test_host not in valid_hosts:
-					num_connection_errors += 1
 					continue
 
 				# Pad the line index to be the same width as the total number of lines
 				sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
-				total_chars_written_to_line += len(str(i + start_offset).zfill(len(str(num_lines)))) + len(str(num_lines)) + 6  # 6 chars for the additional symbols
 				sys.stdout.flush()
 
 				# Connect to the server
@@ -233,25 +215,17 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 					)
 				except connection_error as error:
 					sys.stdout.write(str(error))
-					total_chars_written_to_line += len(str(error))
 
 					if error.host not in invalid_hosts and error.host not in valid_hosts:
-						# TODO only add host to invalid hosts if connection_error is socket.gainfo error
 						invalid_hosts.add(error.host)
 						# sys.stderr.write("|" + error.host + " added to invalid hosts")
-
-					num_connection_errors += 1
 
 					continue
 				except login_error as error:
 					sys.stdout.write(str(error))
-					total_chars_written_to_line += len(str(error))
-					num_incorrect_credentials += 1
-
 					continue
 				else:
 					valid_hosts.add(test_host)
-					num_correct_credentials += 1
 
 					if login_only:
 						break
@@ -269,25 +243,6 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 					sys.stderr.write(str(error))
 
 				break
-
-			# The 17 is for the statistic characters which is calculated as 3*XX.XX
-			percentage_error = "{:.2%}".format(num_connection_errors/valid_credentials_counter)
-			percentage_incorrect = "{:.2%}".format(num_incorrect_credentials/valid_credentials_counter)
-			percentage_correct = "{:.2%}".format(num_correct_credentials/valid_credentials_counter)
-
-			padding_size = terminal_width - (total_chars_written_to_line + len(percentage_error) + len(percentage_incorrect) + len(percentage_correct) + 3)
-			padding_spaces = " " * padding_size
-
-			sys.stdout.write(padding_spaces + "{red}{}{end} {yellow}{}{end} {green}{}{end}\n".format(
-				percentage_error,
-				percentage_incorrect,
-				percentage_correct,
-				red=TerminalColors.red,
-				yellow=TerminalColors.yellow,
-				green=TerminalColors.green,
-				end=TerminalColors.end
-			))
-			sys.stdout.flush()
 
 
 def main():
