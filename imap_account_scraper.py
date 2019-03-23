@@ -190,104 +190,104 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 		for i, line in enumerate(fh):
 
 			credentials = parse_line(line, delimiter=file_delimiter)
-			if credentials is not None:
-				valid_credentials_counter += 1
+			if credentials is None:
+				continue
 
-				# Used to calculate the position to align the statistics to the right side of the terminal
-				total_chars_written_to_line = 0
+			valid_credentials_counter += 1
 
-				if original_host is None:
-					try:
-						host = credentials["email"].split("@")[1]
-					except IndexError:
-						continue
-				else:
-					host = original_host
+			if original_host is None:
+				try:
+					host = credentials["email"].split("@")[1]
+				except IndexError:
+					continue
+			else:
+				host = original_host
 
-				if try_common_hosts:
-					possible_hosts = (host, "imap." + host, "mail." + host)
-				else:
-					possible_hosts = (host, )
+			if try_common_hosts:
+				possible_hosts = (host, "imap." + host, "mail." + host)
+			else:
+				possible_hosts = (host, )
 
-				for test_host in possible_hosts:
-					if test_host in invalid_hosts and test_host not in valid_hosts:
-						num_connection_errors += 1
-						continue
+			# Used to calculate the position to align the statistics to the right side of the terminal
+			total_chars_written_to_line = 0
 
-					# Pad the line index to be the same width as the total number of lines
-					sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
-					total_chars_written_to_line += len(str(i + start_offset).zfill(len(str(num_lines)))) + len(str(num_lines)) + 6  # 6 chars for the additional symbols
-					sys.stdout.flush()
+			for test_host in possible_hosts:
+				if test_host in invalid_hosts and test_host not in valid_hosts:
+					num_connection_errors += 1
+					continue
 
-					# Connect to the server
-					try:
-						server_connection = server_login(
-							username_or_email=credentials["email"],
-							password=credentials["password"],
-							host=test_host,
-							port=port,
-							use_ssl=use_ssl,
-							timeout=0.5  # TODO Refactor this magic number
-						)
-					except connection_error as error:
-						sys.stdout.write(str(error))
-						total_chars_written_to_line += len(str(error))
-
-						if error.host not in invalid_hosts and error.host not in valid_hosts:
-							# TODO only add host to invalid hosts if connection_error is socket.gainfo error
-							invalid_hosts.add(error.host)
-							# sys.stderr.write("\n" + error.host + " added to invalid hosts")
-							pass
-
-
-						num_connection_errors += 1
-
-						continue
-					except login_error as error:
-						sys.stdout.write(str(error))
-						total_chars_written_to_line += len(str(error))
-						num_incorrect_credentials += 1
-
-						continue
-					else:
-						valid_hosts.add(test_host)
-						num_correct_credentials += 1
-
-						if login_only:
-							break
-
-					# Download the emails
-					try:
-						scrape_emails(
-							server=server_connection,
-							mark_as_read=mark_as_read,
-							email_parts=email_parts,
-							output_dir=output_dir,
-							verbosity_level=verbosity_level
-						)
-					except (server_error, PermissionError) as error:
-						sys.stderr.write(str(error))
-
-					break
-
-				# The 17 is for the statistic characters which is calculated as 3*XX.XX
-				percentage_error = "{:.2%}".format(num_connection_errors/valid_credentials_counter)
-				percentage_incorrect = "{:.2%}".format(num_incorrect_credentials/valid_credentials_counter)
-				percentage_correct = "{:.2%}".format(num_correct_credentials/valid_credentials_counter)
-
-				padding_size = terminal_width - (total_chars_written_to_line + len(percentage_error) + len(percentage_incorrect) + len(percentage_correct) + 3)
-				padding_spaces = " " * padding_size
-
-				sys.stdout.write(padding_spaces + "{red}{}{end} {yellow}{}{end} {green}{}{end}\n".format(
-					percentage_error,
-					percentage_incorrect,
-					percentage_correct,
-					red=TerminalColors.red,
-					yellow=TerminalColors.yellow,
-					green=TerminalColors.green,
-					end=TerminalColors.end
-				))
+				# Pad the line index to be the same width as the total number of lines
+				sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
+				total_chars_written_to_line += len(str(i + start_offset).zfill(len(str(num_lines)))) + len(str(num_lines)) + 6  # 6 chars for the additional symbols
 				sys.stdout.flush()
+
+				# Connect to the server
+				try:
+					server_connection = server_login(
+						username_or_email=credentials["email"],
+						password=credentials["password"],
+						host=test_host,
+						port=port,
+						use_ssl=use_ssl,
+						timeout=0.5  # TODO Refactor this magic number
+					)
+				except connection_error as error:
+					sys.stdout.write(str(error))
+					total_chars_written_to_line += len(str(error))
+
+					if error.host not in invalid_hosts and error.host not in valid_hosts:
+						# TODO only add host to invalid hosts if connection_error is socket.gainfo error
+						invalid_hosts.add(error.host)
+						# sys.stderr.write("|" + error.host + " added to invalid hosts")
+
+					num_connection_errors += 1
+
+					continue
+				except login_error as error:
+					sys.stdout.write(str(error))
+					total_chars_written_to_line += len(str(error))
+					num_incorrect_credentials += 1
+
+					continue
+				else:
+					valid_hosts.add(test_host)
+					num_correct_credentials += 1
+
+					if login_only:
+						break
+
+				# Download the emails
+				try:
+					scrape_emails(
+						server=server_connection,
+						mark_as_read=mark_as_read,
+						email_parts=email_parts,
+						output_dir=output_dir,
+						verbosity_level=verbosity_level
+					)
+				except (server_error, PermissionError) as error:
+					sys.stderr.write(str(error))
+
+				break
+
+			# The 17 is for the statistic characters which is calculated as 3*XX.XX
+			percentage_error = "{:.2%}".format(num_connection_errors/valid_credentials_counter)
+			percentage_incorrect = "{:.2%}".format(num_incorrect_credentials/valid_credentials_counter)
+			percentage_correct = "{:.2%}".format(num_correct_credentials/valid_credentials_counter)
+
+			padding_size = terminal_width - (total_chars_written_to_line + len(percentage_error) + len(percentage_incorrect) + len(percentage_correct) + 3)
+			padding_spaces = " " * padding_size
+
+			sys.stdout.write(padding_spaces + "{red}{}{end} {yellow}{}{end} {green}{}{end}\n".format(
+				percentage_error,
+				percentage_incorrect,
+				percentage_correct,
+				red=TerminalColors.red,
+				yellow=TerminalColors.yellow,
+				green=TerminalColors.green,
+				end=TerminalColors.end
+			))
+			sys.stdout.flush()
 
 
 def main():
