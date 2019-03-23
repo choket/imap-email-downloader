@@ -100,7 +100,7 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 	try:
 		server.login(username_or_email, password)
 	except (*timeout_errors, *imap_server_errors):
-		msg = "Incorrect details | {}:{}".format(username_or_email, password)
+		msg = "Incorrect details: {}".format(username_or_email)
 		raise login_error(username_or_email, password, msg)
 
 	setattr(server, "username_or_email", username_or_email)
