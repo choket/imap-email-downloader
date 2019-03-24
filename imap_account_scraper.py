@@ -185,6 +185,8 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 				next(fh)
 
 			for i, line in enumerate(fh):
+				# i refers to the line numbers which start from 1, so we increment it accordingly
+				i += 1
 
 				credentials = parse_line(line, delimiter=file_delimiter)
 				if credentials is None:
@@ -213,7 +215,14 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
 					# Connect to the server
 					try:
-						server_connection = server_login(user_or_email_or_combo=credentials["email"], password=credentials["password"], host=test_host, port=port, use_ssl=use_ssl, timeout=0.5)
+						server_connection = server_login(
+							user_or_email_or_combo=credentials["email"],
+							password=credentials["password"],
+							host=test_host,
+							port=port,
+							use_ssl=use_ssl,
+							timeout=0.
+						)
 					except connection_error as error:
 						sys.stdout.write(str(error) + "\n")
 
@@ -224,6 +233,17 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 						continue
 					except login_error as error:
 						sys.stdout.write(str(error) + "\n")
+						continue
+					except KeyboardInterrupt:
+						raise
+					# Script should move on to the next line in the file and not break if an exception happens
+					except Exception as e:
+						msg = "An unhandled exception occurred at line {}:\n{}\n".format(i + start_offset, str(e))
+						sys.stderr.write(msg)
+
+						with open(os.path.join(output_dir, "error_log.txt"), "a") as log:
+							log.write(msg + "\n")
+
 						continue
 					else:
 						valid_hosts.add(test_host)

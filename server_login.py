@@ -72,7 +72,8 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 				server = imaplib.IMAP4(test_host, port=port)
 
 			break
-		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors):
+		# The UnicodeError is when the domain name is invalid and IDNA encoding fails
+		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors, UnicodeError) as e:
 			msg = "Error connecting to server: {}".format(test_host)
 
 			if not try_common_hosts:
