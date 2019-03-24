@@ -26,19 +26,14 @@ class server_error(email_scraper_errors):
 
 
 def _count_lines(filename):
+	f = open(filename, 'rb')
 	lines = 0
+	buf_size = 1024 * 1024
 
-	try:
-		f = open(filename, 'rb')
-	except FileNotFoundError:
-		pass
-	else:
-		buf_size = 1024 * 1024
-
+	buf = f.read(buf_size)
+	while buf:
+		lines += buf.count(b'\n')
 		buf = f.read(buf_size)
-		while buf:
-			lines += buf.count(b'\n')
-			buf = f.read(buf_size)
 
 	return lines
 
@@ -173,81 +168,89 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 	invalid_hosts = set()
 	valid_hosts = set()
 
-	num_lines = _count_lines(file)
+	try:
+		num_lines = _count_lines(file)
+	except IOError:
+		num_lines = 0
 
 	original_host = host
 
-	with open(file, "r", encoding="utf-8", errors="ignore") as fh:
-		for _ in range(start_offset):
-			next(fh)
+	try:
+		fh = open(file, "r", encoding="utf-8", errors="ignore")
+	except IOError:
+		sys.stderr.write("Error opening file: " + file + "\n")
+	else:
+		with fh:
+			for _ in range(start_offset):
+				next(fh)
 
-		for i, line in enumerate(fh):
+			for i, line in enumerate(fh):
 
-			credentials = parse_line(line, delimiter=file_delimiter)
-			if credentials is None:
-				continue
-
-			if original_host is None:
-				try:
-					host = credentials["email"].split("@")[1]
-				except IndexError:
-					continue
-			else:
-				host = original_host
-
-			if try_common_hosts:
-				possible_hosts = (host, "imap." + host, "mail." + host)
-			else:
-				possible_hosts = (host, )
-
-			for test_host in possible_hosts:
-				if test_host in invalid_hosts and test_host not in valid_hosts:
+				credentials = parse_line(line, delimiter=file_delimiter)
+				if credentials is None:
 					continue
 
-				# Pad the line index to be the same width as the total number of lines
-				sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
-				sys.stdout.flush()
-
-				# Connect to the server
-				try:
-					server_connection = server_login(
-						username_or_email=credentials["email"],
-						password=credentials["password"],
-						host=test_host,
-						port=port,
-						use_ssl=use_ssl,
-						timeout=0.5  # TODO Refactor this magic number
-					)
-				except connection_error as error:
-					sys.stdout.write(str(error) + "\n")
-
-					if error.host not in invalid_hosts and error.host not in valid_hosts:
-						invalid_hosts.add(error.host)
-						# sys.stderr.write("|" + error.host + " added to invalid hosts")
-
-					continue
-				except login_error as error:
-					sys.stdout.write(str(error) + "\n")
-					continue
+				if original_host is None:
+					try:
+						host = credentials["email"].split("@")[1]
+					except IndexError:
+						continue
 				else:
-					valid_hosts.add(test_host)
+					host = original_host
 
-					if login_only:
-						break
+				if try_common_hosts:
+					possible_hosts = (host, "imap." + host, "mail." + host)
+				else:
+					possible_hosts = (host, )
 
-				# Download the emails
-				try:
-					scrape_emails(
-						server=server_connection,
-						mark_as_read=mark_as_read,
-						email_parts=email_parts,
-						output_dir=output_dir,
-						verbosity_level=verbosity_level
-					)
-				except (server_error, PermissionError) as error:
-					sys.stderr.write(str(error) + "\n")
+				for test_host in possible_hosts:
+					if test_host in invalid_hosts and test_host not in valid_hosts:
+						continue
 
-				break
+					# Pad the line index to be the same width as the total number of lines
+					sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
+					sys.stdout.flush()
+
+					# Connect to the server
+					try:
+						server_connection = server_login(
+							username_or_email=credentials["email"],
+							password=credentials["password"],
+							host=test_host,
+							port=port,
+							use_ssl=use_ssl,
+							timeout=0.5  # TODO Refactor this magic number
+						)
+					except connection_error as error:
+						sys.stdout.write(str(error) + "\n")
+
+						if error.host not in invalid_hosts and error.host not in valid_hosts:
+							invalid_hosts.add(error.host)
+							# sys.stderr.write("|" + error.host + " added to invalid hosts")
+
+						continue
+					except login_error as error:
+						sys.stdout.write(str(error) + "\n")
+						continue
+					else:
+						valid_hosts.add(test_host)
+
+						if login_only:
+							break
+
+					# Download the emails
+					try:
+						scrape_emails(
+							server=server_connection,
+							mark_as_read=mark_as_read,
+							email_parts=email_parts,
+							output_dir=output_dir,
+							verbosity_level=verbosity_level
+						)
+					except (server_error, PermissionError) as error:
+						sys.stderr.write(str(error) + "\n")
+
+					break
 
 
 def main():
