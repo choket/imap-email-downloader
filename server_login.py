@@ -49,7 +49,7 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 		else:
 			raise host_missing(host, "Host must be supplied when using just a username and not a full email address")
 
-	host = host.replace("http://", "").replace("https://", "")  # TODO check if removing the schema is even needed
+	host = host.replace("http://", "").replace("https://", "")
 
 	if port is None:
 		if use_ssl:
