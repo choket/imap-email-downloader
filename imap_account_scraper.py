@@ -26,14 +26,19 @@ class server_error(email_scraper_errors):
 
 
 def _count_lines(filename):
-	f = open(filename, 'rb')
 	lines = 0
-	buf_size = 1024 * 1024
 
-	buf = f.read(buf_size)
-	while buf:
-		lines += buf.count(b'\n')
+	try:
+		f = open(filename, 'rb')
+	except FileNotFoundError:
+		pass
+	else:
+		buf_size = 1024 * 1024
+
 		buf = f.read(buf_size)
+		while buf:
+			lines += buf.count(b'\n')
+			buf = f.read(buf_size)
 
 	return lines
 
