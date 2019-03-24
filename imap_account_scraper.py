@@ -213,14 +213,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
 					# Connect to the server
 					try:
-						server_connection = server_login(
-							username_or_email=credentials["email"],
-							password=credentials["password"],
-							host=test_host,
-							port=port,
-							use_ssl=use_ssl,
-							timeout=0.5  # TODO Refactor this magic number
-						)
+						server_connection = server_login(user_or_email_or_combo=credentials["email"], password=credentials["password"], host=test_host, port=port, use_ssl=use_ssl, timeout=0.5)
 					except connection_error as error:
 						sys.stdout.write(str(error) + "\n")
 
@@ -269,12 +262,12 @@ def main():
 
 
 	credentials_args.add_argument("-u", "--user", "--username", dest="username",
-								  help="Username. Can either be the full `username@domain.tld` or just the `username`")
+									help="Username. Can either be the full `username@domain.tld` or just the `username`")
 	credentials_args.add_argument("-f", "--file",
-								  help="Credentials file.\n" +
-									   "A file containing login credentials in the form of `username:password` or `username@domain.tld:password` separated by newlines.\n" +
-									   "Downloaded emails are saved under `output_dir/username/mailbox/"
-									   "You can specify a custom delimiter instead of `:` by using the -d option")
+									help="Credentials file.\n" +
+										"A file containing login credentials in the form of `username:password` or `username@domain.tld:password` separated by newlines.\n" +
+										"Downloaded emails are saved under `output_dir/username/mailbox/"
+										"You can specify a custom delimiter instead of `:` by using the -d option")
 
 	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
 							help="Password. If omitted you will be prompted to enter it when connecting to the server")
@@ -285,10 +278,10 @@ def main():
 
 	arg_parser.add_argument("-t", "--threads", default=3,
 							help="Number of threads to use when downloading emails from multiple accounts supplied by file credentials.\n" +
-								 "Default is 3. Anything above 5 may not work depending on the server"
+								"Default is 3. Anything above 5 may not work depending on the server"
 							)
 	arg_parser.add_argument("-P", "--port",
-							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
+							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s 		s used)")
 	arg_parser.add_argument("-s", "--ssl", action="store_true",
 							help="Use SSL when connecting to the server")
 	arg_parser.add_argument("-m", "--mark-as-read", action="store_true",
@@ -297,17 +290,17 @@ def main():
 							help="Only check whether the username and password are valid and don't download any emails")
 	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "body", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
-								 "headers: Download just the email headers\n" +
-								 "body   : Download just the email body\n" +
-								 "all    : Download both the headers and body")
+								"headers: Download just the email headers\n" +
+								"body   : Download just the email body\n" +
+								"all    : Download both the headers and body")
 	arg_parser.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
 	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2", "3"), default="2",
 							help="Verbosity level. Default level is 2, or 1 when using credentials from a file. Available levels are:\n" +
-								 "0) No messages are printed\n" +
-								 "1) A message is printed for each user \n" +
-								 "2) A message is printed for each mailbox in a user's account \n" +
-								 "3) A message is printed for each individual email in a mailbox \n"
+								"0) No messages are printed\n" +
+								"1) A message is printed for each user \n" +
+								"2) A message is printed for each mailbox in a user's account \n" +
+								"3) A message is printed for each individual email in a mailbox \n"
 							)
 
 	args = arg_parser.parse_args()
@@ -329,7 +322,6 @@ def main():
 
 	socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
 
-
 	if file:
 		batch_scrape(
 			file=file,
@@ -348,7 +340,7 @@ def main():
 	else:
 		try:
 			server_connection = server_login(
-				username_or_email=username,
+				user_or_email_or_combo=username,
 				password=password,
 				host=host,
 				port=port,

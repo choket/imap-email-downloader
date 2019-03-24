@@ -39,13 +39,19 @@ class login_error(email_scraper_errors):
 		return self.message
 
 
-def server_login(username_or_email=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
+def server_login(user_or_email_or_combo=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
 	timeout_errors = (socket.timeout, TimeoutError)
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
+	if ":" in user_or_email_or_combo:
+		user_or_email = user_or_email_or_combo.split(":", 1)[0]
+		password = user_or_email_or_combo.split(":", 1)[1]
+	else:
+		user_or_email = user_or_email_or_combo
+
 	if host is None:
-		if "@" in username_or_email:
-			host = username_or_email.split("@")[1]
+		if "@" in user_or_email:
+			host = user_or_email.split("@", 1)[1]
 		else:
 			raise host_missing(host, "Host must be supplied when using just a username and not a full email address")
 
@@ -92,18 +98,18 @@ def server_login(username_or_email=None, password=None, host=None, port=None, us
 		return server
 
 	if password is None:
-		if ":" in username_or_email:
-			password = username_or_email.split(":")[0]
+		if ":" in user_or_email:
+			password = user_or_email.split(":", 1)[0]
 		else:
 			password = getpass.getpass()
 
 	try:
-		server.login(username_or_email, password)
+		server.login(user_or_email, password)
 	except (*timeout_errors, *imap_server_errors):
-		msg = "Incorrect details: {}".format(username_or_email)
-		raise login_error(username_or_email, password, msg)
+		msg = "Incorrect details: {}".format(user_or_email)
+		raise login_error(user_or_email, password, msg)
 
-	setattr(server, "username_or_email", username_or_email)
+	setattr(server, "username_or_email", user_or_email)
 
 	return server
 
@@ -140,15 +146,7 @@ def main():
 	common_hosts = args.common_hosts
 
 	try:
-		server_login(
-			username_or_email=username,
-			password=password,
-			host=host,
-			port=port,
-			use_ssl=ssl,
-			try_common_hosts=common_hosts,
-			timeout=0.5  # TODO Refactor this magic number
-		)
+		server_login(user_or_email_or_combo=username, password=password, host=host, port=port, use_ssl=ssl, try_common_hosts=common_hosts, timeout=0.5)
 	except login_error:
 		sys.stdout.write("Invalid!\n")
 	except email_scraper_errors as error:
