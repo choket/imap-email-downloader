@@ -296,9 +296,10 @@ def main():
 	arg_parser.add_argument("-O", "--offset", "--start-offset", dest="start_offset", default=0,
 							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
 
-	arg_parser.add_argument("-t", "--threads", default=3,
-							help="Number of threads to use when downloading emails from multiple accounts supplied by file credentials.\n" +
-								"Default is 3. Anything above 5 may not work depending on the server"
+	arg_parser.add_argument("-t", "--timeout", default=1,
+							help="Timeout to be used when connecting to the server (in seconds).\n" +
+								"Default is 1. Anything below 0.5 will result in false-negatives, depending on the server you're connecting to. \n" +
+								"If using a proxy, specify a higher timeout than normally."
 							)
 	arg_parser.add_argument("-P", "--port",
 							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s 		s used)")
@@ -331,7 +332,7 @@ def main():
 	file = args.file
 	file_delimiter = args.file_delimiter
 	start_offset = int(args.start_offset)
-	num_threads = int(args.threads)
+	timeout = int(args.timeout)
 	port = args.port
 	ssl = args.ssl
 	mark_as_read = args.mark_as_read
@@ -340,7 +341,7 @@ def main():
 	output_dir = args.output_dir
 	verbosity_level = int(args.verbosity_level)
 
-	socket.setdefaulttimeout(0.5)  # TODO refactor this magic number
+	socket.setdefaulttimeout(timeout)
 
 	if file:
 		batch_scrape(
@@ -366,7 +367,7 @@ def main():
 				port=port,
 				use_ssl=ssl,
 				try_common_hosts=common_hosts,
-				timeout=0.5  # TODO refactor this magic number
+				timeout=timeout
 			)
 
 			scrape_emails(
