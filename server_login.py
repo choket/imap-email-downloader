@@ -49,6 +49,11 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 	else:
 		user_or_email = user_or_email_or_combo
 
+	if "@" in user_or_email:
+		username = user_or_email.split("@", 1)[0]
+	else:
+		username = user_or_email
+
 	if host is None:
 		if "@" in user_or_email:
 			host = user_or_email.split("@", 1)[1]
@@ -102,7 +107,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		password = getpass.getpass()
 
 	try:
-		server.login(user_or_email, password)
+		server.login(username, password)
 	except (*timeout_errors, *imap_server_errors):
 		msg = "Incorrect details: {}".format(user_or_email)
 		raise login_error(user_or_email, password, msg)
