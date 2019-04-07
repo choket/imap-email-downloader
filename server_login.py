@@ -99,10 +99,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		return server
 
 	if password is None:
-		if ":" in user_or_email:
-			password = user_or_email.split(":", 1)[0]
-		else:
-			password = getpass.getpass()
+		password = getpass.getpass()
 
 	try:
 		server.login(user_or_email, password)
