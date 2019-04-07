@@ -304,7 +304,7 @@ def main():
 								"If using a proxy, specify a higher timeout than normally."
 							)
 	arg_parser.add_argument("-P", "--port",
-							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s 		s used)")
+							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
 	arg_parser.add_argument("-s", "--ssl", action="store_true",
 							help="Use SSL when connecting to the server")
 	arg_parser.add_argument("-m", "--mark-as-read", action="store_true",
