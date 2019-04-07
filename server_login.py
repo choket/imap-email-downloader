@@ -78,7 +78,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 
 			break
 		# The UnicodeError is when the domain name is invalid and IDNA encoding fails
-		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors, UnicodeError) as e:
+		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors, UnicodeError):
 			msg = "Error connecting to server: {}".format(test_host)
 
 			if not try_common_hosts:
@@ -123,7 +123,7 @@ def main():
 	arg_parser.add_argument('--help', action='help', help='show this help message and exit')
 
 	arg_parser.add_argument("-u", "--user", "--username", dest="username", required=True,
-								  help="Username. Can either be the full `username@domain.tld` or just the `username`")
+								help="Username. Can either be the full `username@domain.tld` or just the `username`")
 
 	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
 							help="Password. If omitted you will be prompted to enter it when connecting to the server")
