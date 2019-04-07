@@ -221,7 +221,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 							host=test_host,
 							port=port,
 							use_ssl=use_ssl,
-							timeout=0.
+							timeout=0.5
 						)
 					except connection_error as error:
 						sys.stdout.write(str(error) + "\n")
