@@ -251,15 +251,13 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 						if login_only:
 							break
 
-					output_dir = os.path.join(output_dir, test_host)
-
 					# Download the emails
 					try:
 						scrape_emails(
 							server=server_connection,
 							mark_as_read=mark_as_read,
 							email_parts=email_parts,
-							output_dir=output_dir,
+							output_dir=os.path.join(output_dir, test_host),
 							verbosity_level=verbosity_level
 						)
 					except (server_error, PermissionError) as error:
