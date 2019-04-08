@@ -182,8 +182,8 @@ def batch_scrape(
 
 	try:
 		credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
-	except IOError:
-		sys.stderr.write("Error opening file: " + file + "\n")
+	except IOError as e:
+		sys.stderr.write("Could not open input file. Reason:" + str(e) + "\n")
 	else:
 		with credentials_file:
 			for _ in range(start_offset):
@@ -260,8 +260,13 @@ def batch_scrape(
 						if login_only:
 							sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
 
-							with open(output_dir, 'a') as output_file:
-								output_file.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
+							try:
+								output_file = open(output_dir, 'a')
+							except IOError as e:
+								sys.stderr.write("Could not open output file. Reason:" + str(e) + "\n")
+							else:
+								with output_file:
+									output_file.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
 
 							continue
 
