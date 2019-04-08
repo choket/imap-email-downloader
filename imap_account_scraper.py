@@ -190,7 +190,7 @@ def batch_scrape(
 				next(credentials_file)
 
 			for i, line in enumerate(credentials_file):
-				# i refers to the line numbers which start from 1, so we increment it accordingly
+				# i refers to the line numbers which start from 1, so we increment it accordingly to compensate
 				i += 1
 
 				credentials = parse_line(line, delimiter=file_delimiter)
