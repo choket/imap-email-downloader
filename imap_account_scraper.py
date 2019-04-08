@@ -163,7 +163,10 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 				sys.stdout.write("\n")  # Print newline to compensate for the last \r which will cause the next line to be overwritten
 
 
-def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_offset=0, try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+def batch_scrape(
+		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_offset=0,
+		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=0.5, verbosity_level=2
+):
 	# TODO add a statistic to track how many error connecting to host, incorrect login details and successful login attempts
 
 	invalid_hosts = set()
@@ -222,7 +225,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 							host=test_host,
 							port=port,
 							use_ssl=use_ssl,
-							timeout=0.5
+							timeout=timeout
 						)
 					except connection_error as error:
 						sys.stdout.write(str(error) + "\n")
@@ -233,7 +236,11 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 
 						continue
 					except login_error as error:
+						# if not login_only:
+						# 	sys.stdout.write(str(error) + "\n")
+
 						sys.stdout.write(str(error) + "\n")
+
 						continue
 					except KeyboardInterrupt:
 						raise
@@ -250,7 +257,7 @@ def batch_scrape(file, host=None, port=None, use_ssl=False, login_only=False, fi
 						valid_hosts.add(test_host)
 
 						if login_only:
-							break
+							sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"])
 
 					# Download the emails
 					try:
@@ -333,7 +340,7 @@ def main():
 	file = args.file
 	file_delimiter = args.file_delimiter
 	start_offset = int(args.start_offset)
-	timeout = int(args.timeout)
+	timeout = float(args.timeout)
 	port = args.port
 	ssl = args.ssl
 	mark_as_read = args.mark_as_read
@@ -357,6 +364,7 @@ def main():
 			mark_as_read=mark_as_read,
 			email_parts=email_parts,
 			output_dir=output_dir,
+			timeout=timeout,
 			verbosity_level=verbosity_level
 		)
 	else:
