@@ -10,13 +10,6 @@ from parse_credentials_from_line import parse_line
 from server_login import email_scraper_errors, login_error, connection_error, server_login
 
 
-class TerminalColors:
-	red = '\u001b[31m'
-	yellow = '\u001b[33m'
-	green = '\u001b[32m'
-	end = '\033[0m'
-
-
 class server_error(email_scraper_errors):
 	def __init__(self, message):
 		self.message = message
