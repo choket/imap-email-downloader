@@ -19,6 +19,12 @@ class server_error(email_scraper_errors):
 
 
 def _count_lines(filename):
+	"""
+	Returns number of lines in a file
+
+	:param filename: Path to file
+	:return: Number of lines
+	"""
 	f = open(filename, 'rb')
 	lines = 0
 	buf_size = 1024 * 1024
@@ -27,6 +33,8 @@ def _count_lines(filename):
 	while buf:
 		lines += buf.count(b'\n')
 		buf = f.read(buf_size)
+
+	f.close()
 
 	return lines
 
