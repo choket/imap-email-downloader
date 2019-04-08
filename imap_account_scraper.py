@@ -319,8 +319,7 @@ def main():
 	arg_parser.add_argument("-t", "--timeout", default=1,
 							help="Timeout to be used when connecting to the server (in seconds).\n" +
 								"Default is 1. Anything below 0.5 will result in false-negatives, depending on the server you're connecting to. \n" +
-								"If using a proxy, specify a higher timeout than normally."
-							)
+								"If using a proxy, specify a higher timeout than normally.")
 	arg_parser.add_argument("-P", "--port",
 							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
 	arg_parser.add_argument("-s", "--ssl", action="store_true",
@@ -341,8 +340,7 @@ def main():
 								"0) No messages are printed\n" +
 								"1) A message is printed for each user \n" +
 								"2) A message is printed for each mailbox in a user's account \n" +
-								"3) A message is printed for each individual email in a mailbox \n"
-							)
+								"3) A message is printed for each individual email in a mailbox \n")
 
 	args = arg_parser.parse_args()
 	username = args.username
