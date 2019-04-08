@@ -168,6 +168,7 @@ def batch_scrape(
 		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=0.5, verbosity_level=2
 ):
 	# TODO add a statistic to track how many error connecting to host, incorrect login details and successful login attempts
+	# TODO implement proper verbosity_level handling
 
 	invalid_hosts = set()
 	valid_hosts = set()
@@ -257,7 +258,9 @@ def batch_scrape(
 						valid_hosts.add(test_host)
 
 						if login_only:
-							sys.stdout.write(credentials["email"] + file_delimiter + credentials["password"])
+							sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
+							continue
+
 
 					# Download the emails
 					try:
