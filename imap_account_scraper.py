@@ -181,15 +181,15 @@ def batch_scrape(
 	original_host = host
 
 	try:
-		fh = open(file, "r", encoding="utf-8", errors="ignore")
+		credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
 	except IOError:
 		sys.stderr.write("Error opening file: " + file + "\n")
 	else:
-		with fh:
+		with credentials_file:
 			for _ in range(start_offset):
-				next(fh)
+				next(credentials_file)
 
-			for i, line in enumerate(fh):
+			for i, line in enumerate(credentials_file):
 				# i refers to the line numbers which start from 1, so we increment it accordingly
 				i += 1
 
@@ -259,6 +259,10 @@ def batch_scrape(
 
 						if login_only:
 							sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
+
+							with open(output_dir, 'a') as output_file:
+								output_file.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
+
 							continue
 
 
