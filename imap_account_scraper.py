@@ -77,7 +77,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 	elif email_parts == "body":
 		fetch_parts = "BODY[TEXT]"
 	else:
-		sys.stderr.write("Invalid parts to download, defaulting to all\n")
+		sys.stderr.write("Invalid parts to download, defaulting to all!\n")
 		fetch_parts = "BODY[]"
 
 	# TODO implement command line parameter to skip first n mailboxes
@@ -106,11 +106,10 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 			mailbox_output_directory = os.path.join(username, mailbox)
 
 
-		if not os.path.exists(mailbox_output_directory):
-			try:
-				os.makedirs(mailbox_output_directory)
-			except PermissionError:
-				raise PermissionError("Could not create {}, invalid permissions\n".format(mailbox_output_directory))
+		try:
+			os.makedirs(mailbox_output_directory, exist_ok=True)
+		except PermissionError:
+			raise PermissionError("Could not create {}, invalid permissions\n".format(mailbox_output_directory))
 
 		response, emails_data = server.search(None, "ALL")
 
@@ -122,11 +121,6 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 
 		emails = emails_data[0].decode().split()
 
-		# TODO clean up all these verbosity checks
-		if verbosity_level >= 3:
-			# TODO remove the Total emails {} part because we already have the total emails in the progress bar
-			sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails\n".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails))
-			sys.stdout.flush()
 
 		# TODO implement command line parameter to skip first n emails
 		for i in emails:
@@ -134,19 +128,16 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
 				sys.stdout.flush()
 
-			if verbosity_level >= 3:
-				sys.stdout.write("\t\tDownloading email {}/{}\n".format(i, num_emails))
-
 			try:
 				response, email_info = server.fetch(i, "(FLAGS {})".format(fetch_parts))
 			except imap_server_errors:
-				msg = "Error downloading email {}\n".format(i)
+				msg = "\nError downloading email {}\n".format(i)
 				sys.stderr.write(msg)
 				# raise server_error(msg)
 				continue
 
 			if response != "OK":
-				msg = "Error downloading email {}\n".format(i)
+				msg = "\nError downloading email {}\n".format(i)
 				sys.stderr.write(msg)
 				# raise server_error(msg)
 				continue
@@ -159,6 +150,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 			with open(email_file_path, "wb") as fh2:
 				fh2.write(email_contents)
 		else:
+			# Check if there are no emails in mailbox
 			if not emails and verbosity_level == 2:
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, num_mailboxes, mailbox, 0, 0, 0))
 				sys.stdout.flush()
@@ -182,7 +174,7 @@ def batch_scrape(
 	except IOError:
 		num_lines = 0
 
-	original_host = host.lower()
+	original_host = host
 
 	try:
 		credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
@@ -205,7 +197,7 @@ def batch_scrape(
 					except IndexError:
 						continue
 				else:
-					host = original_host
+					host = original_host.lower()
 
 				if try_common_hosts:
 					possible_hosts = (host, "imap." + host, "mail." + host)
@@ -244,7 +236,7 @@ def batch_scrape(
 
 						sys.stdout.write(str(error) + "\n")
 
-						continue
+						break
 					except KeyboardInterrupt:
 						raise
 					# Script should move on to the next line in the file and not break if an exception happens
@@ -255,7 +247,7 @@ def batch_scrape(
 						with open(os.path.join(output_dir, "error_log.txt"), "a") as log:
 							log.write(msg + "\n")
 
-						continue
+						break
 					else:
 						valid_hosts.add(test_host)
 
@@ -270,7 +262,7 @@ def batch_scrape(
 								with output_file:
 									output_file.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
 
-							continue
+							break
 
 
 					# Download the emails
@@ -337,12 +329,11 @@ def main():
 								"all    : Download both the headers and body")
 	arg_parser.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
-	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2", "3"), default="2",
+	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2"), default="2",
 							help="Verbosity level. Default level is 2, or 1 when using credentials from a file. Available levels are:\n" +
 								"0) No messages are printed\n" +
 								"1) A message is printed for each user \n" +
-								"2) A message is printed for each mailbox in a user's account \n" +
-								"3) A message is printed for each individual email in a mailbox \n")
+								"2) A message is printed for each mailbox in a user's account \n")
 
 	args = arg_parser.parse_args()
 	username = args.username
