@@ -67,6 +67,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 	if response != "OK":
 		raise server_error("Error getting mailboxes from server")
 
+	# TODO add "attachments" (see if it's actually possible)
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
 	elif email_parts == "headers":
@@ -77,7 +78,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		sys.stderr.write("Invalid parts to download, defaulting to all\n")
 		fetch_parts = "BODY[]"
 
-
+	# TODO implement command line parameter to skip first n mailboxes
 	for i_mailbox, meta_mailbox in enumerate(mailboxes):
 		if '"/"' in meta_mailbox.decode():
 			mailbox = meta_mailbox.decode().split('"/" ')[-1]
@@ -122,11 +123,14 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		# TODO clean up all these verbosity checks
 		if verbosity_level >= 3:
 			# TODO remove the Total emails {} part because we already have the total emails in the progress bar
+			# TODO pad i_mailbox to be the same length as len(mailboxes)
 			sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails\n".format(i_mailbox + 1, len(mailboxes), mailbox, num_emails))
 			sys.stdout.flush()
 
+		# TODO implement command line parameter to skip first n emails
 		for i in emails:
 			if verbosity_level == 2:
+				# TODO pad i_mailbox to be the same length as len(mailboxes)
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, len(mailboxes), mailbox, num_emails, i, num_emails))
 				sys.stdout.flush()
 
@@ -211,6 +215,7 @@ def batch_scrape(
 					possible_hosts = (host, )
 
 				for test_host in possible_hosts:
+					# TODO change to case insensitive comparison
 					if test_host in invalid_hosts and test_host not in valid_hosts:
 						continue
 
