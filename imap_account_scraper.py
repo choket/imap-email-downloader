@@ -67,6 +67,8 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 	if response != "OK":
 		raise server_error("Error getting mailboxes from server")
 
+	num_mailboxes = len(mailboxes)
+
 	# TODO add "attachments" (see if it's actually possible)
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
@@ -79,7 +81,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		fetch_parts = "BODY[]"
 
 	# TODO implement command line parameter to skip first n mailboxes
-	for i_mailbox, meta_mailbox in enumerate(mailboxes):
+	for i_mailbox, meta_mailbox in enumerate(mailboxes, 1):
 		if '"/"' in meta_mailbox.decode():
 			mailbox = meta_mailbox.decode().split('"/" ')[-1]
 		else:
@@ -88,7 +90,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		response, num_emails_data = server.select(mailbox, readonly=not mark_as_read)
 
 		if response != "OK":
-			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox + 1, len(mailboxes), meta_mailbox.decode(), num_emails_data[0].decode())
+			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, meta_mailbox.decode(), num_emails_data[0].decode())
 			sys.stdout.write(msg)
 			# raise server_error(msg)
 			continue
@@ -123,15 +125,13 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		# TODO clean up all these verbosity checks
 		if verbosity_level >= 3:
 			# TODO remove the Total emails {} part because we already have the total emails in the progress bar
-			# TODO pad i_mailbox to be the same length as len(mailboxes)
-			sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails\n".format(i_mailbox + 1, len(mailboxes), mailbox, num_emails))
+			sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails\n".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails))
 			sys.stdout.flush()
 
 		# TODO implement command line parameter to skip first n emails
 		for i in emails:
 			if verbosity_level == 2:
-				# TODO pad i_mailbox to be the same length as len(mailboxes)
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, len(mailboxes), mailbox, num_emails, i, num_emails))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
 				sys.stdout.flush()
 
 			if verbosity_level >= 3:
@@ -160,7 +160,7 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 				fh2.write(email_contents)
 		else:
 			if not emails and verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, len(mailboxes), mailbox, 0, 0, 0))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, num_mailboxes, mailbox, 0, 0, 0))
 				sys.stdout.flush()
 
 			if verbosity_level == 2:
@@ -182,7 +182,7 @@ def batch_scrape(
 	except IOError:
 		num_lines = 0
 
-	original_host = host
+	original_host = host.lower()
 
 	try:
 		credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
@@ -193,9 +193,7 @@ def batch_scrape(
 			for _ in range(start_offset):
 				next(credentials_file)
 
-			for i, line in enumerate(credentials_file):
-				# i refers to the line numbers which start from 1, so we increment it accordingly to compensate
-				i += 1
+			for i, line in enumerate(credentials_file, 1):
 
 				credentials = parse_line(line, delimiter=file_delimiter)
 				if credentials is None:
@@ -203,7 +201,7 @@ def batch_scrape(
 
 				if original_host is None:
 					try:
-						host = credentials["email"].split("@")[1]
+						host = credentials["email"].split("@")[1].lower()
 					except IndexError:
 						continue
 				else:
@@ -215,7 +213,6 @@ def batch_scrape(
 					possible_hosts = (host, )
 
 				for test_host in possible_hosts:
-					# TODO change to case insensitive comparison
 					if test_host in invalid_hosts and test_host not in valid_hosts:
 						continue
 

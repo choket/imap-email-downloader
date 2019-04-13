@@ -61,6 +61,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 			raise host_missing(host, "Host must be supplied when using just a username and not a full email address")
 
 	host = host.replace("http://", "").replace("https://", "")
+	host = host.lower()
 
 	if port is None:
 		if use_ssl:
