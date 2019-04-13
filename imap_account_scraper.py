@@ -69,10 +69,10 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 
 	num_mailboxes = len(mailboxes)
 
-	# TODO add "attachments" (see if it's actually possible)
+	# TODO add "attachments" (see if it's actually possible it is Pog. Use BODY[i+1] to get the i-th attachment)
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
-	elif email_parts == "headers":
+	elif email_parts == "headers" or email_parts == "metadata":
 		fetch_parts = "BODY[HEADER]"
 	elif email_parts == "body":
 		fetch_parts = "BODY[TEXT]"
@@ -322,11 +322,11 @@ def main():
 							help="Use this option to mark the emails as read when downloading them. Default is to NOT mark them as read")
 	arg_parser.add_argument("-l", "--login-only", action="store_true",
 							help="Only check whether the username and password are valid and don't download any emails")
-	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "body", "all"), default="all",
+	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
-								"headers: Download just the email headers\n" +
-								"body   : Download just the email body\n" +
-								"all    : Download both the headers and body")
+								"headers|metadata: Download just the email headers\n" +
+								"body            : Download just the email body\n" +
+								"all             : Download both the headers and body")
 	arg_parser.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
 	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2"), default="2",
