@@ -68,7 +68,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		else:
 			port = 143
 
-	possible_hosts = (host, "imap." + host, "mail." + host)
+	possible_hosts = (host, "mail." + host, "imap." + host)
 	for test_host in possible_hosts:
 		try:
 			if use_ssl:
@@ -85,7 +85,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 				raise connection_error(test_host, msg)
 
 			if test_host == possible_hosts[0]:
-				sys.stderr.write("Trying common server variations\n")
+				sys.stderr.write("Trying common server variations...\n")
 			elif test_host == possible_hosts[-1]:
 				sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
 				raise connection_error(test_host, msg)
