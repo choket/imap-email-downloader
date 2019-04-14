@@ -124,6 +124,11 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 
 		# TODO implement command line parameter to skip first n emails
 		for i in emails:
+
+
+			# if int(i) < start_mailbox:
+			# 	continue
+
 			if verbosity_level == 2:
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
 				sys.stdout.flush()
@@ -160,10 +165,9 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 
 
 def batch_scrape(
-		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_offset=0,
+		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_line=0,
 		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=0.5, verbosity_level=2
 ):
-	# TODO add a statistic to track how many error connecting to host, incorrect login details and successful login attempts
 	# TODO implement proper verbosity_level handling
 
 	invalid_hosts = set()
@@ -175,6 +179,8 @@ def batch_scrape(
 		num_lines = 0
 
 	original_host = host
+	# offset by -1 to skip TO N-th line instead of skipping N lines
+	start_line -= 1
 
 	try:
 		credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
@@ -182,7 +188,7 @@ def batch_scrape(
 		sys.stderr.write("Could not open input file. Reason:" + str(e) + "\n")
 	else:
 		with credentials_file:
-			for _ in range(start_offset):
+			for _ in range(start_line):
 				next(credentials_file)
 
 			for i, line in enumerate(credentials_file, 1):
@@ -209,7 +215,7 @@ def batch_scrape(
 						continue
 
 					# Pad the line index to be the same width as the total number of lines
-					sys.stdout.write("({}/{}) | ".format(str(i + start_offset).zfill(len(str(num_lines))), num_lines))
+					sys.stdout.write("({}/{}) | ".format(str(i + start_line).zfill(len(str(num_lines))), num_lines))
 					sys.stdout.flush()
 
 					# Connect to the server
@@ -241,7 +247,7 @@ def batch_scrape(
 						raise
 					# Script should move on to the next line in the file and not break if an exception happens
 					except Exception as e:
-						msg = "An unhandled exception occurred at line {}:\n{}\n".format(i + start_offset, str(e))
+						msg = "An unhandled exception occurred at line {}:\n{}\n".format(i + start_line, str(e))
 						sys.stderr.write(msg)
 
 						with open(os.path.join(output_dir, "error_log.txt"), "a") as log:
@@ -309,6 +315,10 @@ def main():
 							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
 	arg_parser.add_argument("-O", "--offset", "--start-offset", dest="start_offset", default=0,
 							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+	arg_parser.add_argument("-M", "-start-mailbox", dest="start_mailbox", default=0,
+							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+	arg_parser.add_argument("-E", "-start-email", dest="start_email", default=0,
+							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
 
 	arg_parser.add_argument("-t", "--timeout", default=1,
 							help="Timeout to be used when connecting to the server (in seconds).\n" +
@@ -362,7 +372,7 @@ def main():
 			use_ssl=ssl,
 			login_only=login_only,
 			file_delimiter=file_delimiter,
-			start_offset=start_offset,
+			start_line=start_offset,
 			try_common_hosts=common_hosts,
 			mark_as_read=mark_as_read,
 			email_parts=email_parts,
