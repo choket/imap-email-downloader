@@ -39,7 +39,10 @@ def _count_lines(filename):
 	return lines
 
 
-def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None, verbosity_level=2):
+def scrape_emails(
+		server, mark_as_read=False, email_parts="all", start_mailbox = 1,
+		start_email = 1, output_dir=None, verbosity_level=2
+):
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
 	username_or_email = server.username_or_email
@@ -82,6 +85,9 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 
 	# TODO implement command line parameter to skip first n mailboxes
 	for i_mailbox, meta_mailbox in enumerate(mailboxes, 1):
+		if i_mailbox < start_mailbox:
+			continue
+
 		if '"/"' in meta_mailbox.decode():
 			mailbox = meta_mailbox.decode().split('"/" ')[-1]
 		else:
@@ -126,8 +132,8 @@ def scrape_emails(server, mark_as_read=False, email_parts="all", output_dir=None
 		for i in emails:
 
 
-			# if int(i) < start_mailbox:
-			# 	continue
+			if int(i) < start_email:
+				continue
 
 			if verbosity_level == 2:
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
@@ -313,12 +319,12 @@ def main():
 							help="Password. If omitted you will be prompted to enter it when connecting to the server")
 	arg_parser.add_argument("-d", "--file-delimiter", default=":",
 							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
-	arg_parser.add_argument("-O", "--offset", "--start-offset", dest="start_offset", default=0,
-							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
-	arg_parser.add_argument("-M", "-start-mailbox", dest="start_mailbox", default=0,
-							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
-	arg_parser.add_argument("-E", "-start-email", dest="start_email", default=0,
-							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+	arg_parser.add_argument("-L", "--line", "--start-line", dest="start_line", default=1,
+							help="Start parsing the credentials file from the N-th line. (Skip the first N-1 lines)")
+	arg_parser.add_argument("-M", "--mailbox", "--start-mailbox", dest="start_mailbox", default=1,
+							help="Start download from the N-th mailbox. (Skip the first N-1 mailboxes)")
+	arg_parser.add_argument("-E", "--email", "--start-email", dest="start_email", default=1,
+							help="Start download from the N-th email in the mailbox. (Skip the first N-1 emails)")
 
 	arg_parser.add_argument("-t", "--timeout", default=1,
 							help="Timeout to be used when connecting to the server (in seconds).\n" +
@@ -352,7 +358,9 @@ def main():
 	common_hosts = args.common_hosts
 	file = args.file
 	file_delimiter = args.file_delimiter
-	start_offset = int(args.start_offset)
+	start_line = int(args.start_line)
+	start_mailbox = int(args.start_mailbox)
+	start_email = int(args.start_email)
 	timeout = float(args.timeout)
 	port = args.port
 	ssl = args.ssl
@@ -372,7 +380,7 @@ def main():
 			use_ssl=ssl,
 			login_only=login_only,
 			file_delimiter=file_delimiter,
-			start_line=start_offset,
+			start_line=start_line,
 			try_common_hosts=common_hosts,
 			mark_as_read=mark_as_read,
 			email_parts=email_parts,
@@ -396,6 +404,8 @@ def main():
 				server=server_connection,
 				mark_as_read=mark_as_read,
 				email_parts=email_parts,
+				start_mailbox=start_mailbox,
+				start_email=start_email,
 				output_dir=output_dir,
 				verbosity_level=verbosity_level
 			)
