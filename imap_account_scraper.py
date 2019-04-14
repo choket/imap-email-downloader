@@ -83,7 +83,6 @@ def scrape_emails(
 		sys.stderr.write("Invalid parts to download, defaulting to all!\n")
 		fetch_parts = "BODY[]"
 
-	# TODO implement command line parameter to skip first n mailboxes
 	for i_mailbox, meta_mailbox in enumerate(mailboxes, 1):
 		if i_mailbox < start_mailbox:
 			continue
@@ -128,9 +127,7 @@ def scrape_emails(
 		emails = emails_data[0].decode().split()
 
 
-		# TODO implement command line parameter to skip first n emails
 		for i in emails:
-
 
 			if int(i) < start_email:
 				continue
@@ -163,7 +160,7 @@ def scrape_emails(
 		else:
 			# Check if there are no emails in mailbox
 			if not emails and verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(i_mailbox + 1, num_mailboxes, mailbox, 0, 0, 0))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, 0, 0, 0))
 				sys.stdout.flush()
 
 			if verbosity_level == 2:
