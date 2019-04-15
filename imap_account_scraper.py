@@ -40,8 +40,8 @@ def _count_lines(filename):
 
 
 def scrape_emails(
-		server, mark_as_read=False, email_parts="all", start_mailbox = 1,
-		start_email = 1, output_dir=None, verbosity_level=2
+		server, mark_as_read=False, email_parts="all", start_mailbox=1,
+		start_email=1, output_dir=None, verbosity_level=2
 ):
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
@@ -72,7 +72,7 @@ def scrape_emails(
 
 	num_mailboxes = len(mailboxes)
 
-	# TODO add "attachments" (see if it's actually possible it is Pog. Use BODY[i+1] to get the i-th attachment)
+	# TODO add "attachments" (see if it's actually possible. it is Pog. Use BODY[i+1] to get the i-th attachment)
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
 	elif email_parts == "headers" or email_parts == "metadata":
@@ -171,8 +171,6 @@ def batch_scrape(
 		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_line=0,
 		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=0.5, verbosity_level=2
 ):
-	# TODO implement proper verbosity_level handling
-
 	invalid_hosts = set()
 	valid_hosts = set()
 
@@ -217,9 +215,10 @@ def batch_scrape(
 					if test_host in invalid_hosts and test_host not in valid_hosts:
 						continue
 
-					# Pad the line index to be the same width as the total number of lines
-					sys.stdout.write("({}/{}) | ".format(str(i + start_line).zfill(len(str(num_lines))), num_lines))
-					sys.stdout.flush()
+					if verbosity_level >= 1:
+						# Pad the line index to be the same width as the total number of lines
+						sys.stdout.write("({}/{}) | ".format(str(i + start_line).zfill(len(str(num_lines))), num_lines))
+						sys.stdout.flush()
 
 					# Connect to the server
 					try:
@@ -232,9 +231,10 @@ def batch_scrape(
 							timeout=timeout
 						)
 					except connection_error as error:
-						sys.stdout.write(str(error) + "\n")
+						if verbosity_level >= 1:
+							sys.stdout.write(str(error) + "\n")
 
-						if error.host not in invalid_hosts and error.host not in valid_hosts:
+						if error.host not in valid_hosts:
 							invalid_hosts.add(error.host)
 							# sys.stderr.write("|" + error.host + " added to invalid hosts")
 
@@ -243,7 +243,8 @@ def batch_scrape(
 						# if not login_only:
 						# 	sys.stdout.write(str(error) + "\n")
 
-						sys.stdout.write(str(error) + "\n")
+						if verbosity_level >= 1:
+							sys.stdout.write(str(error) + "\n")
 
 						break
 					except KeyboardInterrupt:
@@ -261,7 +262,8 @@ def batch_scrape(
 						valid_hosts.add(test_host)
 
 						if login_only:
-							sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
+							if verbosity_level >= 1:
+								sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
 
 							try:
 								output_file = open(output_dir, 'a')
