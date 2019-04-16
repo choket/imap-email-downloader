@@ -2,6 +2,7 @@
 import argparse
 import imaplib
 import os
+import re
 import socket
 import sys
 import time
@@ -39,6 +40,26 @@ def _count_lines(filename):
 	return lines
 
 
+def _download_email_attachments(server_connection, email_number, output_folder="attachments"):
+
+	response, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
+
+	# body_structure is a list containing a single item -- the body structure
+	body_structure = body_structure[0]
+
+	# body_structure has the attachment filenames in the form of(including quotes): <other_data> ("attachment" ("filename" "<filename>")) <other_data>
+	filename_pattern = re.compile(b'\\("attachment" \\("filename" "(.+?)"\\)\\)')
+
+	found_attachments = filename_pattern.findall(body_structure)
+
+	num_attachments = len(found_attachments)
+
+	if num_attachments > 0:
+		pass
+
+	return num_attachments
+
+
 def scrape_emails(
 		server, mark_as_read=False, email_parts="all", start_mailbox=1,
 		start_email=1, output_dir=None, verbosity_level=2
@@ -73,6 +94,8 @@ def scrape_emails(
 	num_mailboxes = len(mailboxes)
 
 	# TODO add "attachments" (see if it's actually possible. it is Pog. Use BODY[i+1] to get the i-th attachment)
+
+	# The case when email_parts == "attachments" is handled below at the fetch() line
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
 	elif email_parts == "headers" or email_parts == "metadata":
@@ -132,6 +155,10 @@ def scrape_emails(
 			if int(i) < start_email:
 				continue
 
+			if email_parts == "attachments":
+				num_attachments = _download_email_attachments(server_connection=server, email_number=i)
+				continue
+
 			if verbosity_level == 2:
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
 				sys.stdout.flush()
@@ -168,8 +195,8 @@ def scrape_emails(
 
 
 def batch_scrape(
-		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_line=0,
-		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=0.5, verbosity_level=2
+		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_line=1,
+		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=1.0, verbosity_level=2
 ):
 	invalid_hosts = set()
 	valid_hosts = set()
@@ -337,7 +364,7 @@ def main():
 							help="Use this option to mark the emails as read when downloading them. Default is to NOT mark them as read")
 	arg_parser.add_argument("-l", "--login-only", action="store_true",
 							help="Only check whether the username and password are valid and don't download any emails")
-	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "all"), default="all",
+	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "attachments", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
 								"headers|metadata: Download just the email headers\n" +
 								"body            : Download just the email body\n" +
