@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import base64
 import imaplib
 import os
 import re
@@ -40,7 +41,8 @@ def _count_lines(filename):
 	return lines
 
 
-def _download_email_attachments(server_connection, email_number, output_folder="attachments"):
+def _download_email_attachments(server_connection, email_number, output_folder=b"attachments"):
+	output_folder = bytes(output_folder, encoding="utf-8")
 
 	response, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
 
@@ -54,7 +56,23 @@ def _download_email_attachments(server_connection, email_number, output_folder="
 
 	num_attachments = len(found_attachments)
 
-	if num_attachments > 0:
+	for i, attachment_name in enumerate(found_attachments, 1):
+		response, attachment_data_container = server_connection.fetch(email_number, "(BODY[{}])".format(i + 1))
+		attachment_data_b64 = attachment_data_container[0][1]
+		attachment_raw_data = base64.b64decode(attachment_data_b64)
+
+		for char in (b">", b"<", b":", b"\"", b"/", b"\\", b"|", b"?", b"*"):
+			if char in attachment_name:
+				attachment_name = attachment_name.replace(char, b"_")
+
+		try:
+			os.makedirs(output_folder, exist_ok=True)
+		except FileExistsError:
+			pass
+
+		with open(os.path.join(output_folder, attachment_name), "wb") as attachment_file:
+			attachment_file.write(attachment_raw_data)
+
 		pass
 
 	return num_attachments
@@ -95,13 +113,15 @@ def scrape_emails(
 
 	# TODO add "attachments" (see if it's actually possible. it is Pog. Use BODY[i+1] to get the i-th attachment)
 
-	# The case when email_parts == "attachments" is handled below at the fetch() line
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
 	elif email_parts == "headers" or email_parts == "metadata":
 		fetch_parts = "BODY[HEADER]"
 	elif email_parts == "body":
 		fetch_parts = "BODY[TEXT]"
+	elif email_parts == "attachments":
+		# Downloading email attachments is handled below at the fetch() line
+		pass
 	else:
 		sys.stderr.write("Invalid parts to download, defaulting to all!\n")
 		fetch_parts = "BODY[]"
@@ -156,7 +176,7 @@ def scrape_emails(
 				continue
 
 			if email_parts == "attachments":
-				num_attachments = _download_email_attachments(server_connection=server, email_number=i)
+				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_folder=os.path.join(output_dir, i))
 				continue
 
 			if verbosity_level == 2:
