@@ -129,7 +129,7 @@ def scrape_emails(
 		if i_mailbox < start_mailbox:
 			continue
 
-		if '"/"' in imap_mailbox.decode():
+		if '"/"' in imap_mailbox.decode(errors="replace"):
 			mailbox_folder = imap_mailbox.decode(error="replace").split('"/" ')[-1]
 		else:
 			mailbox_folder = imap_mailbox.decode(error="replace").split("NIL ")[-1]
@@ -137,12 +137,12 @@ def scrape_emails(
 		response, num_emails_data = server.select(mailbox_folder, readonly=not mark_as_read)
 
 		if response != "OK":
-			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, imap_mailbox.decode(), num_emails_data[0].decode())
+			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, imap_mailbox.decode(errors="replace"), num_emails_data[0].decode(errors="replace"))
 			sys.stdout.write(msg)
 			# raise server_error(msg)
 			continue
 
-		num_emails = int(num_emails_data[0].decode())
+		num_emails = int(num_emails_data[0].decode(errors="replace"))
 
 		mailbox_folder = mailbox_folder.replace("\"", "")
 
@@ -161,12 +161,12 @@ def scrape_emails(
 		response, emails_data = server.search(None, "ALL")
 
 		if response != "OK":
-			msg = "Error searching for emails in mailbox: {}\n".format(imap_mailbox.decode())
+			msg = "Error searching for emails in mailbox: {}\n".format(imap_mailbox.decode(errors="replace"))
 			sys.stderr.write(msg)
 			# raise server_error(msg)
 			continue
 
-		emails = emails_data[0].decode().split()
+		emails = emails_data[0].decode(errors="replace").split()
 
 
 		for i in emails:
@@ -196,7 +196,7 @@ def scrape_emails(
 				# raise server_error(msg)
 				continue
 
-			email_read_status = "READ" if "SEEN" in email_info[0][0].decode().upper() else "UNREAD"
+			email_read_status = "READ" if "SEEN" in email_info[0][0].decode(errors="replace").upper() else "UNREAD"
 			email_contents = email_info[0][1]
 			email_filename = i + "-" + email_read_status + ".eml"
 			email_file_path = os.path.join(mailbox_output_directory, email_filename)
