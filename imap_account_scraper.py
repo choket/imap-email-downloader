@@ -41,8 +41,8 @@ def _count_lines(filename):
 	return lines
 
 
-def _download_email_attachments(server_connection, email_number, output_folder=b"attachments"):
-	output_folder = bytes(output_folder, encoding="utf-8")
+def _download_email_attachments(server_connection, email_number, output_dir="attachments"):
+	output_dir = bytes(output_dir, encoding="utf-8")
 
 	response, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
 
@@ -66,11 +66,11 @@ def _download_email_attachments(server_connection, email_number, output_folder=b
 				attachment_name = attachment_name.replace(char, b"_")
 
 		try:
-			os.makedirs(output_folder, exist_ok=True)
+			os.makedirs(output_dir, exist_ok=True)
 		except FileExistsError:
 			pass
 
-		with open(os.path.join(output_folder, attachment_name), "wb") as attachment_file:
+		with open(os.path.join(output_dir, attachment_name), "wb") as attachment_file:
 			attachment_file.write(attachment_raw_data)
 
 		pass
@@ -111,7 +111,6 @@ def scrape_emails(
 
 	num_mailboxes = len(mailboxes)
 
-	# TODO add "attachments" (see if it's actually possible. it is Pog. Use BODY[i+1] to get the i-th attachment)
 
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
@@ -126,32 +125,32 @@ def scrape_emails(
 		sys.stderr.write("Invalid parts to download, defaulting to all!\n")
 		fetch_parts = "BODY[]"
 
-	for i_mailbox, meta_mailbox in enumerate(mailboxes, 1):
+	for i_mailbox, imap_mailbox in enumerate(mailboxes, 1):
 		if i_mailbox < start_mailbox:
 			continue
 
-		if '"/"' in meta_mailbox.decode():
-			mailbox = meta_mailbox.decode().split('"/" ')[-1]
+		if '"/"' in imap_mailbox.decode():
+			mailbox_folder = imap_mailbox.decode(error="replace").split('"/" ')[-1]
 		else:
-			mailbox = meta_mailbox.decode().split("NIL ")[-1]
+			mailbox_folder = imap_mailbox.decode(error="replace").split("NIL ")[-1]
 
-		response, num_emails_data = server.select(mailbox, readonly=not mark_as_read)
+		response, num_emails_data = server.select(mailbox_folder, readonly=not mark_as_read)
 
 		if response != "OK":
-			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, meta_mailbox.decode(), num_emails_data[0].decode())
+			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, imap_mailbox.decode(), num_emails_data[0].decode())
 			sys.stdout.write(msg)
 			# raise server_error(msg)
 			continue
 
 		num_emails = int(num_emails_data[0].decode())
 
-		mailbox = mailbox.replace("\"", "")
+		mailbox_folder = mailbox_folder.replace("\"", "")
 
 
 		if output_dir != "":
-			mailbox_output_directory = os.path.join(output_dir, username, mailbox)
+			mailbox_output_directory = os.path.join(output_dir, username, mailbox_folder)
 		else:
-			mailbox_output_directory = os.path.join(username, mailbox)
+			mailbox_output_directory = os.path.join(username, mailbox_folder)
 
 
 		try:
@@ -162,7 +161,7 @@ def scrape_emails(
 		response, emails_data = server.search(None, "ALL")
 
 		if response != "OK":
-			msg = "Error searching for emails in mailbox: {}\n".format(meta_mailbox.decode())
+			msg = "Error searching for emails in mailbox: {}\n".format(imap_mailbox.decode())
 			sys.stderr.write(msg)
 			# raise server_error(msg)
 			continue
@@ -176,11 +175,11 @@ def scrape_emails(
 				continue
 
 			if email_parts == "attachments":
-				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_folder=os.path.join(output_dir, i))
+				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, i))
 				continue
 
 			if verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, num_emails, i, num_emails))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_folder, num_emails, i, num_emails))
 				sys.stdout.flush()
 
 			try:
@@ -207,7 +206,7 @@ def scrape_emails(
 		else:
 			# Check if there are no emails in mailbox
 			if not emails and verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox, 0, 0, 0))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_folder, 0, 0, 0))
 				sys.stdout.flush()
 
 			if verbosity_level == 2:

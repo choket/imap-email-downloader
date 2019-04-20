@@ -8,7 +8,7 @@ def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callb
 
 	:param server_connection: imaplib.IMAP4 or imaplib.IMAP4_SSL object which is already logged in to a server
 	:param mailbox: Name of mailbox
-	:param search_query: RFC 3501 compliant search query
+	:param search_query: RFC 3501 compliant IMAP search query
 	:param sleep_timer: Number of seconds to sleep
 	:param callback_function:
 		function to be called for each of the emails that match the `search_query`
