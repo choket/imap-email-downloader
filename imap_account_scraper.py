@@ -130,9 +130,9 @@ def scrape_emails(
 			continue
 
 		if '"/"' in imap_mailbox.decode(errors="replace"):
-			mailbox_folder = imap_mailbox.decode(error="replace").split('"/" ')[-1]
+			mailbox_folder = imap_mailbox.decode(errors="replace").split('"/" ')[-1]
 		else:
-			mailbox_folder = imap_mailbox.decode(error="replace").split("NIL ")[-1]
+			mailbox_folder = imap_mailbox.decode(errors="replace").split("NIL ")[-1]
 
 		response, num_emails_data = server.select(mailbox_folder, readonly=not mark_as_read)
 
@@ -148,9 +148,9 @@ def scrape_emails(
 
 
 		if output_dir != "":
-			mailbox_output_directory = os.path.join(output_dir, username, mailbox_folder)
+			mailbox_output_directory = os.path.join(output_dir, mailbox_folder)
 		else:
-			mailbox_output_directory = os.path.join(username, mailbox_folder)
+			mailbox_output_directory = mailbox_folder
 
 
 		try:
@@ -174,13 +174,14 @@ def scrape_emails(
 			if int(i) < start_email:
 				continue
 
-			if email_parts == "attachments":
-				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, i))
-				continue
-
 			if verbosity_level == 2:
 				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_folder, num_emails, i, num_emails))
 				sys.stdout.flush()
+
+			if email_parts == "attachments":
+				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_folder, i))
+				continue
+
 
 			try:
 				response, email_info = server.fetch(i, "(FLAGS {})".format(fetch_parts))
@@ -240,7 +241,7 @@ def batch_scrape(
 
 			for i, line in enumerate(credentials_file, 1):
 
-				credentials = parse_line(line, delimiter=file_delimiter)
+				credentials = parse_line(line, include_username=True, delimiter=file_delimiter)
 				if credentials is None:
 					continue
 
@@ -328,7 +329,7 @@ def batch_scrape(
 							server=server_connection,
 							mark_as_read=mark_as_read,
 							email_parts=email_parts,
-							output_dir=os.path.join(output_dir, test_host),
+							output_dir=os.path.join(output_dir, test_host, credentials["username"]),
 							verbosity_level=verbosity_level
 						)
 					except (server_error, PermissionError) as error:
@@ -356,7 +357,7 @@ def main():
 									help="Username. Can either be the full `username@domain.tld` or just the `username`")
 	credentials_args.add_argument("-f", "--file",
 									help="Credentials file.\n" +
-										"A file containing login credentials in the form of `username:password` or `username@domain.tld:password` separated by newlines.\n" +
+										"A file containing login credentials in the form of `username:password` or `username@domain.tld:password` separated by newlines\n" +
 										"Downloaded emails are saved under `output_dir/username/mailbox/"
 										"You can specify a custom delimiter instead of `:` by using the -d option")
 
@@ -385,13 +386,13 @@ def main():
 							help="Only check whether the username and password are valid and don't download any emails")
 	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "attachments", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
-								"headers|metadata: Download just the email headers\n" +
-								"body            : Download just the email body\n" +
-								"all             : Download both the headers and body")
+								"headers|metadata: Email headers\n" +
+								"body            : Email body\n" +
+								"all             : Both headers and body")
 	arg_parser.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
 	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2"), default="2",
-							help="Verbosity level. Default level is 2, or 1 when using credentials from a file. Available levels are:\n" +
+							help="Verbosity level. Default level is 2. Available levels are:\n" +
 								"0) No messages are printed\n" +
 								"1) A message is printed for each user \n" +
 								"2) A message is printed for each mailbox in a user's account \n")
@@ -400,15 +401,15 @@ def main():
 	username = args.username
 	password = args.password
 	host = args.host
-	common_hosts = args.common_hosts
-	file = args.file
+	try_common_hosts = args.common_hosts
+	credentials_file = args.file
 	file_delimiter = args.file_delimiter
 	start_line = int(args.start_line)
 	start_mailbox = int(args.start_mailbox)
 	start_email = int(args.start_email)
 	timeout = float(args.timeout)
 	port = args.port
-	ssl = args.ssl
+	use_ssl = args.ssl
 	mark_as_read = args.mark_as_read
 	login_only = args.login_only
 	email_parts = args.parts
@@ -417,16 +418,16 @@ def main():
 
 	socket.setdefaulttimeout(timeout)
 
-	if file:
+	if credentials_file:
 		batch_scrape(
-			file=file,
+			file=credentials_file,
 			host=host,
 			port=port,
-			use_ssl=ssl,
+			use_ssl=use_ssl,
 			login_only=login_only,
 			file_delimiter=file_delimiter,
 			start_line=start_line,
-			try_common_hosts=common_hosts,
+			try_common_hosts=try_common_hosts,
 			mark_as_read=mark_as_read,
 			email_parts=email_parts,
 			output_dir=output_dir,
@@ -440,8 +441,8 @@ def main():
 				password=password,
 				host=host,
 				port=port,
-				use_ssl=ssl,
-				try_common_hosts=common_hosts,
+				use_ssl=use_ssl,
+				try_common_hosts=try_common_hosts,
 				timeout=timeout
 			)
 
