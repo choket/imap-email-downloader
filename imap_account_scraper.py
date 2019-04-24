@@ -50,13 +50,32 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 	body_structure = body_structure[0]
 
 	# body_structure has the attachment filenames in the form of(including quotes): <other_data> ("attachment" ("filename" "<filename>")) <other_data>
-	filename_pattern = re.compile(b'\\("attachment" \\("filename" "(.+?)"\\)\\)')
+	filename_pattern = re.compile(rb'\("attachment" \("filename" "(.+?)"')
 
 	found_attachments = filename_pattern.findall(body_structure)
 
 	num_attachments = len(found_attachments)
 
 	for i, attachment_name in enumerate(found_attachments, 1):
+		charset = "utf-8"
+
+		if attachment_name.startswith(b"=?"):
+			attachment_section_pattern = re.compile(rb'=\?(.+?)\?=(?: |$)')
+			attachment_name_sections = attachment_section_pattern.findall(attachment_name)
+
+			attachment_name = b""
+			for attachment_name_section in attachment_name_sections:
+				charset, encoding_type, attachment_name_part = attachment_name_section.decode().split("?")
+				attachment_name_part = bytes(attachment_name_part, encoding="utf-8")
+
+				# The attachment name section is base64 encoded
+				if encoding_type == "B":
+					attachment_name += base64.b64decode(attachment_name_part)
+				# Special bytes are hexadecimally encoded as =XX
+				elif encoding_type == "Q":
+					hex_to_byte = lambda regex_match: bytes.fromhex(regex_match.group(1).decode())
+					attachment_name += re.sub(rb"=([0-9A-F]{2})", hex_to_byte, attachment_name_part)
+
 		response, attachment_data_container = server_connection.fetch(email_number, "(BODY[{}])".format(i + 1))
 		attachment_data_b64 = attachment_data_container[0][1]
 		attachment_raw_data = base64.b64decode(attachment_data_b64)
@@ -70,7 +89,8 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 		except FileExistsError:
 			pass
 
-		with open(os.path.join(output_dir, attachment_name), "wb") as attachment_file:
+		output_location = os.path.join(output_dir, attachment_name).decode(charset)
+		with open(output_location, "wb") as attachment_file:
 			attachment_file.write(attachment_raw_data)
 
 		pass
@@ -111,7 +131,7 @@ def scrape_emails(
 
 	num_mailboxes = len(mailboxes)
 
-
+	# TODO add option "no-attachments" to only download the body+headers and no attachments
 	if email_parts == "all":
 		fetch_parts = "BODY[]"
 	elif email_parts == "headers" or email_parts == "metadata":
@@ -384,10 +404,11 @@ def main():
 							help="Use this option to mark the emails as read when downloading them. Default is to NOT mark them as read")
 	arg_parser.add_argument("-l", "--login-only", action="store_true",
 							help="Only check whether the username and password are valid and don't download any emails")
-	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "attachments", "all"), default="all",
+	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "no-attachments", "attachments", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
 								"headers|metadata: Email headers\n" +
 								"body            : Email body\n" +
+								"no-attachments  : Email headers + body (no attachments)\n"
 								"all             : Both headers and body")
 	arg_parser.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
