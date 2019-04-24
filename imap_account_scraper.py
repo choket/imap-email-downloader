@@ -90,8 +90,13 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 			pass
 
 		output_location = os.path.join(output_dir, attachment_name).decode(charset)
-		with open(output_location, "wb") as attachment_file:
-			attachment_file.write(attachment_raw_data)
+		try:
+			attachment_file = open(output_location, "wb")
+		except IOError as e:
+			sys.stderr.write("Could not open input file. Reason:" + str(e) + "\n")
+		else:
+			with attachment_file:
+				attachment_file.write(attachment_raw_data)
 
 		pass
 
