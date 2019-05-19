@@ -1,6 +1,14 @@
+# !/usr/bin/env python3
+
 # TODO Fucking comment all this shit nigga
 
-#!/usr/bin/env python3
+# WEIRD INDEXES EXPLANATION:
+# imaplib's fetch() command returns the server response in a weirdly formatted way.
+# It returns a tuple containing the server's response status and response data in that order.
+# Then additionally, the response data is actually a list containing some metadata and the data itself.
+# So, depending on what data was fetch()'ed, we need to dig through the response accordingly to find the actual data
+
+
 import argparse
 import base64
 import imaplib
@@ -11,19 +19,7 @@ import sys
 import time
 
 from parse_credentials_from_line import parse_line
-from server_login import email_scraper_errors, login_error, connection_error, server_login
-# !/usr/bin/env python3
-import argparse
-import base64
-import imaplib
-import os
-import re
-import socket
-import sys
-import time
-
-from parse_credentials_from_line import parse_line
-from server_login import email_scraper_errors, login_error, connection_error, server_login
+from server_login import server_login, email_scraper_errors, login_error, connection_error
 
 
 class server_error(email_scraper_errors):
@@ -45,20 +41,21 @@ def _count_lines(filename):
 	buf_size = 1024 * 1024
 
 	with open(filename, 'rb') as f:
-		buf = f.read(buf_size)
-		while buf:
-			lines += buf.count(b'\n')
-			buf = f.read(buf_size)
+		read_content = f.read(buf_size)
+		while read_content:
+			lines += read_content.count(b'\n')
+			read_content = f.read(buf_size)
 
 	return lines
 
 
 def _download_email_attachments(server_connection, email_number, output_dir="attachments"):
+	# output_dir is converted to bytes so that the attachment name, which is bytes, can be appended to it
 	output_dir = bytes(output_dir, encoding="utf-8")
 
-	response, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
+	status, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
 
-	# imaplib
+	# See comment at start of file for explanation about the indexes
 	body_structure = body_structure[0]
 
 	# body_structure has the attachment filenames in the form of(including quotes): <other_data> ("attachment" ("filename" "<filename>" <other_data>
@@ -72,7 +69,7 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 	for i, attachment_name in enumerate(found_attachments, 1):
 		charset = "utf-8"
 
-		# Checks if attachment name contains non utf-8 characters
+		# Check if attachment name contains non utf-8 characters
 		if attachment_name.startswith(b"=?"):
 
 			# The attachment name can consist of multiple sections each encoded with different charsets
@@ -84,29 +81,28 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 				charset, encoding_type, attachment_name_part = attachment_name_section.decode().split("?")
 				attachment_name_part = bytes(attachment_name_part, encoding="utf-8")
 
-				# The attachment_name_section will either be Base64 or Query string encoded
+				# attachment_name_part will either be Base64 or Query string encoded
 
 				# Base64 encoding
 				if encoding_type == "B":
 					attachment_name += base64.b64decode(attachment_name_part)
 
-				# Query string encoding, where non utf-8 bytes are e encoded as their hexadecimal value, prepended by an "=" sign, for example: =D3
+				# Query string encoding, where non utf-8 bytes are encoded as their hexadecimal value, prepended by an "=" sign, for example: =D3
 				elif encoding_type == "Q":
 					# Function that will convert the hex value from the regex search to a byte
 					hex_to_byte = lambda regex_match: bytes.fromhex(regex_match.group(1).decode())
 
 					attachment_name += re.sub(rb"=([0-9A-F]{2})", hex_to_byte, attachment_name_part)
 
-		response, attachment_data_container = server_connection.fetch(email_number, "(BODY[{}])".format(i + 1))
+		status, attachment_data_container = server_connection.fetch(email_number, "(BODY[{}])".format(i + 1))
 
 		# TODO Check if response == "OK"
 
-		# imaplib returns fetch() responses in a weird list, so we have to dig a little bit to get the actual response.
-		# Also, the attachment data is Base64 encoded
+		# See comment at start of file for explanation about the indexes
 		attachment_data_b64 = attachment_data_container[0][1]
 		attachment_raw_data = base64.b64decode(attachment_data_b64)
 
-		# Replace invalid filename characters in the attachment name with underscores
+		# Replace invalid filename characters underscores
 		for char in (b">", b"<", b":", b"\"", b"/", b"\\", b"|", b"?", b"*"):
 			if char in attachment_name:
 				attachment_name = attachment_name.replace(char, b"_")
@@ -116,7 +112,7 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 		except PermissionError:
 			raise PermissionError("Could not create {}, invalid permissions\n".format(output_dir))
 
-		output_location = os.path.join(output_dir, attachment_name).decode(charset)
+		output_location = os.path.join(output_dir, attachment_name).decode(charset, errors="ignore")
 		try:
 			attachment_file = open(output_location, "wb")
 		except IOError as e:
@@ -132,8 +128,10 @@ def scrape_emails(
 		server, mark_as_read=False, email_parts="all", start_mailbox=1,
 		start_email=1, output_dir=None, verbosity_level=2
 ):
+	# Classes used to catch imaplib exceptions
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
+	# username_or_email is a custom property of imaplib's object that is set when logging in in server_login() function
 	username_or_email = server.username_or_email
 
 	if "@" in username_or_email:
@@ -163,9 +161,11 @@ def scrape_emails(
 
 	num_mailboxes = len(mailboxes)
 
+	# Decide what parts of the email to download, based on the IMAP rfc
 	if email_parts == "all":
 		imap_email_parts = "BODY[]"
 	elif email_parts == "headers" or email_parts == "metadata":
+		# TODO Check if this contains a boundary start as the last line
 		imap_email_parts = "BODY[HEADER]"
 	elif email_parts == "body":
 		# TODO This also downloads attachments. Change it so it only downloads the body
@@ -188,13 +188,13 @@ def scrape_emails(
 		if i_mailbox < start_mailbox:
 			continue
 
-		# Extract the name of the mailbox from the IMAP response
+		# Extract the name of the mailbox from the server response
 		if '"/"' in imap_mailbox.decode(errors="replace"):
-			mailbox_folder = imap_mailbox.decode(errors="replace").split('"/" ')[-1]
+			mailbox_name = imap_mailbox.decode(errors="replace").split('"/" ')[-1]
 		else:
-			mailbox_folder = imap_mailbox.decode(errors="replace").split("NIL ")[-1]
+			mailbox_name = imap_mailbox.decode(errors="replace").split("NIL ")[-1]
 
-		response, num_emails_data = server.select(mailbox_folder, readonly=not mark_as_read)
+		response, num_emails_data = server.select(mailbox_name, readonly=not mark_as_read)
 
 		if response != "OK":
 			msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, imap_mailbox.decode(errors="replace"), num_emails_data[0].decode(errors="replace"))
@@ -202,15 +202,19 @@ def scrape_emails(
 			# raise server_error(msg)
 			continue
 
+		# See comment at start of file for explanation about the indexes
 		num_emails = int(num_emails_data[0].decode())
 
-		mailbox_folder = mailbox_folder.replace("\"", "")
+		# Replace invalid filename characters with underscores
+		for char in (b">", b"<", b":", b"\"", b"/", b"\\", b"|", b"?", b"*"):
+			if char in mailbox_name:
+				mailbox_name = mailbox_name.replace(char, b"_")
 
 
 		if output_dir != "":
-			mailbox_output_directory = os.path.join(output_dir, mailbox_folder)
+			mailbox_output_directory = os.path.join(output_dir, mailbox_name)
 		else:
-			mailbox_output_directory = mailbox_folder
+			mailbox_output_directory = mailbox_name
 
 
 		try:
@@ -226,20 +230,20 @@ def scrape_emails(
 			# raise server_error(msg)
 			continue
 
+		# See comment at start of file for explanation about the indexes
 		emails = emails_data[0].decode(errors="replace").split()
 
-
 		for i in emails:
-
+			# Skip to the email specified in start_email
 			if int(i) < start_email:
 				continue
 
 			if verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_folder, num_emails, i, num_emails))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, num_emails, i, num_emails))
 				sys.stdout.flush()
 
 			if email_parts == "attachments":
-				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_folder, i))
+				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_name, i))
 				continue
 			elif email_parts == "no-attachments":
 				# TODO implement this
@@ -265,7 +269,7 @@ def scrape_emails(
 			for part in fetched_parts[:-1]:
 				email_contents += part[1]
 
-
+			# Skip to the mailbox specified in start_mailbox
 			email_read_status = "READ" if "SEEN" in fetched_parts[0][0].decode(errors="replace").upper() else "UNREAD"
 			email_filename = i + "-" + email_read_status + ".eml"
 			email_file_path = os.path.join(mailbox_output_directory, email_filename)
@@ -275,11 +279,12 @@ def scrape_emails(
 		else:
 			# Check if there are no emails in mailbox
 			if not emails and verbosity_level == 2:
-				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_folder, 0, 0, 0))
+				sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, 0, 0, 0))
 				sys.stdout.flush()
 
 			if verbosity_level == 2:
-				sys.stdout.write("\n")  # Print newline to compensate for the last \r
+				# Print newline to compensate for the last \r
+				sys.stdout.write("\n")
 
 
 def batch_scrape(
