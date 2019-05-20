@@ -9,7 +9,9 @@ def parse_line(line, include_username=False, delimiter=":"):
 
 	line = line.rstrip()
 	data_parts = line.split(delimiter)
-	data_parts = [part for part in data_parts if part]  # Removes empty parts
+
+	# Remove empty parts
+	data_parts = [part for part in data_parts if part]
 
 	# if len(data_parts) == 2:
 	#     username = data_parts[0].split("@")[0] if include_username else None
@@ -20,15 +22,17 @@ def parse_line(line, include_username=False, delimiter=":"):
 
 	for part in data_parts:
 
+		# Stop parsing the data_parts if we have already found the email and password
 		if password is not None and email is not None:
 			break
 
+		# Find the email
 		if re.match(r"(^[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$)", part.strip(), re.IGNORECASE):
 			email = part
 			continue
 		elif email is None:
-			# Skip all the parts until we find the email
-			# the password is almost always located after the email
+			# Don't look for the password until we have found the email
+			# The password is almost always located after the email
 			continue
 
 		if re.match(r"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", part):
@@ -47,6 +51,7 @@ def parse_line(line, include_username=False, delimiter=":"):
 
 
 	if email is None or password is None:
+		# Line doesn't contain login credentials
 		return None
 	else:
 		username = email.split("@")[0] if include_username else None

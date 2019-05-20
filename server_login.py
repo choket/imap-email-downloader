@@ -11,8 +11,7 @@ class email_scraper_errors(Exception): pass
 
 class host_missing(email_scraper_errors):
 
-	def __init__(self, host, message):
-		self.host = host
+	def __init__(self, message):
 		self.message = message
 
 	def __str__(self):
@@ -45,8 +44,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
 	if ":" in user_or_email_or_combo:
-		user_or_email = user_or_email_or_combo.split(":", 1)[0]
-		password = user_or_email_or_combo.split(":", 1)[1]
+		user_or_email, password = user_or_email_or_combo.split(":", 1)
 	else:
 		user_or_email = user_or_email_or_combo
 
@@ -59,8 +57,9 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		if "@" in user_or_email:
 			host = user_or_email.split("@", 1)[1]
 		else:
-			raise host_missing(host, "Host must be supplied when using just a username and not a full email address")
+			raise host_missing("Host must be supplied when using just a username and not a full email address")
 
+	# The schema is not needed and contains invalid filename characters, so remove it
 	host = host.replace("http://", "").replace("https://", "")
 	host = host.lower()
 
@@ -70,7 +69,14 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		else:
 			port = 143
 
-	possible_hosts = (host, "mail." + host, "imap." + host)
+	socket.setdefaulttimeout(timeout)
+
+	if try_common_hosts:
+		# Additional hosts to be used if connecting to the original one fails
+		# IMAP servers can be commonly found on specific subdomains, not the actual domain
+		possible_hosts = (host, "imap." + host, "mail." + host)
+	else:
+		possible_hosts = (host,)
 	for test_host in possible_hosts:
 		try:
 			if use_ssl:
@@ -79,18 +85,19 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 				server = imaplib.IMAP4(test_host, port=port)
 
 			break
-		# The UnicodeError is when the domain name is invalid and IDNA encoding fails
-		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors, UnicodeError):
+		# A UnicodeError exception is thrown when the domain name is invalid and IDNA encoding fails
+		except (ConnectionError, socket.gaierror, *timeout_errors, *imap_server_errors, UnicodeError) as e:
 			msg = "Error connecting to server: {}".format(test_host)
 
-			if not try_common_hosts:
+			if try_common_hosts:
+				if test_host == possible_hosts[0]:
+					sys.stderr.write("Trying common server variations...\n")
+				elif test_host == possible_hosts[-1]:
+					sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
+					raise connection_error(test_host, msg)
+			else:
 				raise connection_error(test_host, msg)
 
-			if test_host == possible_hosts[0]:
-				sys.stderr.write("Trying common server variations...\n")
-			elif test_host == possible_hosts[-1]:
-				sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
-				raise connection_error(test_host, msg)
 
 	try:
 		server.enable("UTF-8=ACCEPT")
@@ -99,8 +106,6 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		# Manually setting this in case server.enable("UTF8=ACCEPT") fails which can happen because some old servers
 		# either don't support ENABLE command, or don't list utf-8 in their capabilities() but can still handle it
 		server._encoding = "utf-8"
-
-	server.sock.settimeout(timeout)
 
 	if no_login:
 		return server
@@ -114,6 +119,7 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 		msg = "Incorrect details: {}".format(user_or_email)
 		raise login_error(user_or_email, password, msg)
 
+	# Add username_or_email to the server object which is later used by scrape_emails()
 	setattr(server, "username_or_email", user_or_email)
 
 	return server
@@ -122,25 +128,33 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 def main():
 	program_description = "Test whether login credentials are valid on the supplied IMAP server"
 	arg_parser = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-	arg_parser.add_argument('--help', action='help', help='show this help message and exit')
+	arg_parser.add_argument('--help', action='help', help='show this help message and exit\n\n')
 
 	arg_parser.add_argument("-u", "--user", "--username", dest="username", required=True,
-								help="Username. Can either be the full `username@domain.tld` or just the `username`")
-
+							help="Username or combo.\n" +
+								"The username can either be the full email: `bob@example.com` or just the username: `bob`\n" +
+								"The combo can contain the email address and password, separated by `:`\n" +
+								"along with other data commonly found in database dumps\n\n")
 	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
-							help="Password. If omitted you will be prompted to enter it when connecting to the server")
+							help="Password. If omitted you will be prompted to enter it when connecting to the server\n\n")
 
 	arg_parser.add_argument("-h", "--host", dest="host",
-							help="IP or full domain name of the server")
+							help="IP or full domain name of the server\n\n")
 
 	arg_parser.add_argument("-P", "--port",
-							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
+							help="Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used)\n\n")
 
 	arg_parser.add_argument("-s", "--ssl", action="store_true",
-							help="Use SSL when connecting to the server")
+							help="Use SSL when connecting to the server\n\n")
 
 	arg_parser.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
-							help="If connecting to host fails, try common variations of the host such as mail.host and imap.host")
+							help="If connecting to host fails, try variations such as mail.example.com and imap.example.com\n\n")
+
+	arg_parser.add_argument("-t", "--timeout", default=1.0,
+							help="Timeout to be used when connecting to the server (in seconds).\n" +
+								"Default is 1.\n" +
+								"Anything below 0.5 will result in false-negatives, depending on the server.\n" +
+								"If using a proxy, specify a higher timeout than normally.\n\n")
 
 	args = arg_parser.parse_args()
 	username = args.username
@@ -148,10 +162,12 @@ def main():
 	host = args.host
 	port = args.port
 	ssl = args.ssl
-	common_hosts = args.common_hosts
+	try_common_hosts = args.common_hosts
+	timeout = float(args.timeout)
+
 
 	try:
-		server_login(user_or_email_or_combo=username, password=password, host=host, port=port, use_ssl=ssl, try_common_hosts=common_hosts, timeout=0.5)
+		server_login(user_or_email_or_combo=username, password=password, host=host, port=port, use_ssl=ssl, try_common_hosts=try_common_hosts, timeout=timeout)
 	except login_error:
 		sys.stdout.write("Invalid!\n")
 	except email_scraper_errors as error:

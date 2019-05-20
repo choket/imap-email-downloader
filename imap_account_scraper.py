@@ -4,7 +4,7 @@
 
 # WEIRD INDEXES EXPLANATION:
 # imaplib's fetch() command returns the server response in a weirdly formatted way.
-# It returns a tuple containing the server's response status and response data in that order.
+# It returns a tuple containing the server's response status and response data.
 # Then additionally, the response data is actually a list containing some metadata and the data itself.
 # So, depending on what data was fetch()'ed, we need to dig through the response accordingly to find the actual data
 
@@ -231,7 +231,7 @@ def scrape_emails(
 			continue
 
 		# See comment at start of file for explanation about the indexes
-		emails = emails_data[0].decode(errors="replace").split()
+		emails = emails_data[0].decode().split()
 
 		for i in emails:
 			# Skip to the email specified in start_email
@@ -247,7 +247,7 @@ def scrape_emails(
 				continue
 			elif email_parts == "no-attachments":
 				# TODO implement this
-				pass
+				continue
 
 
 			try:
@@ -269,8 +269,7 @@ def scrape_emails(
 			for part in fetched_parts[:-1]:
 				email_contents += part[1]
 
-			# Skip to the mailbox specified in start_mailbox
-			email_read_status = "READ" if "SEEN" in fetched_parts[0][0].decode(errors="replace").upper() else "UNREAD"
+			email_read_status = "READ" if "SEEN" in fetched_parts[0][0].decode().upper() else "UNREAD"
 			email_filename = i + "-" + email_read_status + ".eml"
 			email_file_path = os.path.join(mailbox_output_directory, email_filename)
 
@@ -309,12 +308,15 @@ def batch_scrape(
 		sys.stderr.write("Could not open input file. Reason:" + str(e) + "\n")
 	else:
 		with credentials_file:
+			# Skip to the line specified in start_line
 			for _ in range(start_line):
 				next(credentials_file)
 
 			for i, line in enumerate(credentials_file, 1):
 
 				credentials = parse_line(line, include_username=True, delimiter=file_delimiter)
+
+				# parse_line() function returns None if it couldn't find any credentials in the line specified
 				if credentials is None:
 					continue
 
@@ -326,12 +328,20 @@ def batch_scrape(
 				else:
 					host = original_host.lower()
 
+				# TODO Remove this and use the try_common_hosts parameter of server_login
 				if try_common_hosts:
+					# Additional hosts to be used if connecting to the original one fails
+					# IMAP servers can be commonly found on specific subdomains, not the actual domain
 					possible_hosts = (host, "imap." + host, "mail." + host)
 				else:
 					possible_hosts = (host, )
 
 				for test_host in possible_hosts:
+
+					# Skip connecting to the host if it is invalid_hosts, but also specifically check whether it is NOT in valid_hosts.
+					# Even if the IMAP server works as expected, sometimes it can bug out and produce a connection error.
+					# That connection error will cause the host to be added to invalid_hosts, even though it works normally.
+					# So, when successfully connecting to a server we add that server to valid_hosts to make sure it doesn't get skipped
 					if test_host in invalid_hosts and test_host not in valid_hosts:
 						continue
 
@@ -351,26 +361,29 @@ def batch_scrape(
 							timeout=timeout
 						)
 					except connection_error as error:
+						# Could not connect to host
 						if verbosity_level >= 1:
 							sys.stdout.write(str(error) + "\n")
 
 						if error.host not in valid_hosts:
 							invalid_hosts.add(error.host)
-							# sys.stderr.write("|" + error.host + " added to invalid hosts")
 
 						continue
 					except login_error as error:
-						# if not login_only:
-						# 	sys.stdout.write(str(error) + "\n")
+						# Invalid login details
 
 						if verbosity_level >= 1:
 							sys.stdout.write(str(error) + "\n")
 
 						break
 					except KeyboardInterrupt:
+						# catch KeyboardInterrupt exception and then raise it again
+						# This is done so that the broad exception handling code below doesn't also catch this exception,
+						# which will prevent the program from exiting when pressing Ctrl + C
 						raise
-					# Script should move on to the next line in the file and not break if an exception happens
 					except Exception as e:
+						# Catch any unhandled exceptions and write them to a log file
+						# The script should continue parsing the credentials file until the end, regardless if an exception happened
 						msg = "An unhandled exception occurred at line {}:\n{}\n".format(i + start_line, str(e))
 						sys.stderr.write(msg)
 
@@ -412,59 +425,66 @@ def batch_scrape(
 
 
 def main():
-	program_description = "Download emails from an IMAP server and save them to disk in .eml format"
+	program_description = "Download all emails from an email account on an IMAP server and save the raw email contents to disk"
 	arg_parser = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-	arg_parser.add_argument('--help', action='help', help='show this help message and exit')
+	arg_parser.add_argument("--help", action="help", help="show this help message and exit\n\n")
 
 
 	credentials_args = arg_parser.add_mutually_exclusive_group(required=True)
 
 
 	arg_parser.add_argument("-h", "--host", dest="host",
-							help="IP or full domain name of the server")
+							help="IP or full domain name of the server\n\n")
 	arg_parser.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
-							help="If connecting to host fails, try common variations of the host such as mail.host and imap.host")
+							help="If connecting to host fails, try variations such as mail.example.com and imap.example.com\n\n")
 
 
-	credentials_args.add_argument("-u", "--user", "--username", dest="username",
-									help="Username. Can either be the full `username@domain.tld` or just the `username`")
 	credentials_args.add_argument("-f", "--file",
 									help="Credentials file.\n" +
-										"A file containing login credentials in the form of `username:password` or `username@domain.tld:password` separated by newlines\n" +
-										"Downloaded emails are saved under `output_dir/username/mailbox/"
-										"You can specify a custom delimiter instead of `:` by using the -d option")
-
-	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
-							help="Password. If omitted you will be prompted to enter it when connecting to the server")
+										"A file containing login credentials in the form of `username:password`\n" +
+										"or `username@example.com:password` separated by newlines\n" +
+										"Downloaded emails are saved under `output_dir/username/mailbox_name/\n"
+										"You can specify a custom delimiter instead of `:` by using the -d option\n\n")
 	arg_parser.add_argument("-d", "--file-delimiter", default=":",
-							help="A custom delimiter to use when parsing the credentials file to separate the username and password")
+							help="The character which separates the username and password in the credentials file\n\n")
+	credentials_args.add_argument("-u", "--user", "--username", dest="username",
+									help="Username or combo.\n" +
+										"The username can either be the full email: `bob@example.com` or just the username: `bob`\n" +
+										"The combo can contain the email address and password, separated by `:`\n" +
+										"along with other data commonly found in database dumps\n\n")
+	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
+							help="Password. If omitted you will be prompted to enter it when connecting to the server\n\n")
 	arg_parser.add_argument("-L", "--line", "--start-line", dest="start_line", default=1,
-							help="Start parsing the credentials file from the N-th line. (Skip the first N-1 lines)")
+							help="Start parsing the credentials file from the N-th line. (Skip the first N-1 lines)\n\n")
 	arg_parser.add_argument("-M", "--mailbox", "--start-mailbox", dest="start_mailbox", default=1,
-							help="Start download from the N-th mailbox. (Skip the first N-1 mailboxes)")
+							help="Start downloading emails from the N-th mailbox. (Skip the first N-1 mailboxes)\n\n")
 	arg_parser.add_argument("-E", "--email", "--start-email", dest="start_email", default=1,
-							help="Start download from the N-th email in the mailbox. (Skip the first N-1 emails)")
+							help="Start downloading emails from the N-th email in the mailbox. (Skip the first N-1 emails)\n\n")
 
-	arg_parser.add_argument("-t", "--timeout", default=1,
+	arg_parser.add_argument("-t", "--timeout", default=1.0,
 							help="Timeout to be used when connecting to the server (in seconds).\n" +
-								"Default is 1. Anything below 0.5 will result in false-negatives, depending on the server you're connecting to. \n" +
-								"If using a proxy, specify a higher timeout than normally.")
+								"Default is 1.\n" +
+								"Anything below 0.5 will result in false-negatives, depending on the server.\n" +
+								"If using a proxy, specify a higher timeout than normally.\n\n")
 	arg_parser.add_argument("-P", "--port",
-							help="Port on which the IMAP server is running. Defaults to 143(or 993 if -s is used)")
+							help="Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used)\n\n")
 	arg_parser.add_argument("-s", "--ssl", action="store_true",
-							help="Use SSL when connecting to the server")
+							help="Use SSL when connecting to the server\n\n")
 	arg_parser.add_argument("-m", "--mark-as-read", action="store_true",
-							help="Use this option to mark the emails as read when downloading them. Default is to NOT mark them as read")
+							help="Use this option to mark the emails as read when downloading them.\n" +
+								"Default is to NOT mark them as read\n\n")
 	arg_parser.add_argument("-l", "--login-only", action="store_true",
-							help="Only check whether the username and password are valid and don't download any emails")
+							help="Just check whether the username and password are valid and don't download any emails\n\n")
 	arg_parser.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "no-attachments", "attachments", "all"), default="all",
 							help="Specify what parts of the email to download\n" +
 								"headers|metadata: Email headers\n" +
 								"body            : Email body\n" +
-								"no-attachments  : Email headers + body (no attachments)\n"
-								"all             : Both headers and body")
+								"no-attachments  : Email headers + body without attachments\n"
+								"attachments     : Just the email attachments\n"
+								"all             : Whole email\n\n")
 	arg_parser.add_argument("-o", "--output-dir",
-							help="Output Directory. Defaults to `host`. Pass an empty string to output emails to the current working directory")
+							help="Output Directory. Defaults to the same value as `host`.\n" +
+								"Pass an empty string to download emails to the current working directory\n\n")
 	arg_parser.add_argument("-v", "--verbosity-level", choices=("0", "1", "2"), default="2",
 							help="Verbosity level. Default level is 2. Available levels are:\n" +
 								"0) No messages are printed\n" +
