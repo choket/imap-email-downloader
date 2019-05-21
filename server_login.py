@@ -42,7 +42,7 @@ class login_error(email_scraper_errors):
 
 
 def server_login(
-		user_or_email_or_combo,
+		user_or_email_or_combo: str,
 		password: Optional[str] = None,
 		host: Optional[str] = None,
 		port: Optional[int] = None,
@@ -51,6 +51,23 @@ def server_login(
 		no_login: Optional[bool] = False,
 		timeout: Optional[Union[float, int]] = None
 ) -> Union[imaplib.IMAP4, imaplib.IMAP4_SSL]:
+	"""Log in to an IMAP server
+
+	:param user_or_email_or_combo: String containing the username, or the email, or the email and password separated by ":"
+	:param password: Password to use when logging in
+	:param host: IP or domain of the IMAP server
+	:param port: Port on which the IMAP server is listening
+	:param use_ssl: Use SSL when connecting to the server
+	:param try_common_hosts: If connecting to host fails, try connecting to common subdomains of the host on which the server might be running
+	:param no_login: Don't log in to the server, just establish a connection
+	:param timeout: Maximum number of seconds to try and establish a connection
+
+	:return: imaplib object which is connected to the server, or raise an exception
+
+	:raise host_missing: If the host is not supplied and user_or_email_or_combo also doesn't contain the host
+	:raise connection_error: When couldn't connect to the host
+	:raise login_error: When couldn't log in with the supplied credentials
+	"""
 	timeout_errors = (socket.timeout, TimeoutError)
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 

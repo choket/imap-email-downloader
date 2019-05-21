@@ -3,13 +3,20 @@ import argparse
 import re
 import sys
 
-from typing import Optional
+from typing import Optional, Dict, Union
 
 
 def parse_line(
 		line: str,
 		delimiter: Optional[str] = ":"
-):
+) -> Union[Dict[str, str], None]:
+	"""Extract email, password and username from a line containing additional data parts, as common in many database dumps. Each of the data parts must be separated by a delimiter.
+	Note that the username is extracted from the email, and doesn't refer to a different username which may be present in the line
+
+	:param line: Line which contains the data to be parsed
+	:param delimiter: Delimiter to separate the data parts
+	:return: A dictionary with the following keys: "email", "password", "username" containing the extracted values, respectively, or None if no data could be extracted
+	"""
 	# TODO add support for byte strings
 
 	line = line.rstrip()
@@ -64,7 +71,7 @@ def parse_line(
 
 
 def main():
-	program_description = "Extract email and password from text containing additional data as well.\n" + \
+	program_description = "Extract email, password and username from text containing additional data as well.\n" + \
 						'Returns the email and password joined by ":" or whatever you set as the delimiter using -d\n' + \
 						"Example: user@example.com:my_password\n"
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter)
@@ -79,7 +86,7 @@ def main():
 	credentials = parse_line(args.line, args.delimiter)
 
 	if credentials:
-		print(credentials["email"], credentials["password"], sep=":")
+		print(credentials["email"], credentials["password"], credentials["username"], sep=":")
 	else:
 		sys.stderr.write("Could not extract email and password!\n")
 

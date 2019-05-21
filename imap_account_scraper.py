@@ -37,6 +37,7 @@ def _count_lines(
 
 	:param filename: Path to file
 	:return: Number of lines
+	:raise IOError: If the file couldn't be opened
 	"""
 	lines = 0
 	buf_size = 1024 * 1024
@@ -55,6 +56,13 @@ def _download_email_attachments(
 		email_number: str,
 		output_dir: Optional[str] = "attachments"
 ):
+	"""Download the attachments of an email
+
+	:param server: imaplib object which is logged in and has a mailbox selected
+	:param email_number: Number of the email whose attachments to download
+	:param output_dir: Directory where to output the attachments
+	:return: None
+	"""
 	# output_dir is converted to bytes so that the attachment name, which is bytes, can be appended to it
 	output_dir = bytes(output_dir, encoding="utf-8")
 
@@ -138,6 +146,26 @@ def scrape_emails(
 		output_dir: Optional[str] = None,
 		verbosity_level: Optional[int] = 2
 ):
+	"""Download all the emails in an email account via IMAP access
+
+	:param server: imaplib object which is logged in, and has the username or email used to log in set in custom attribute called "username_or_email"
+	:param mark_as_read: When set to True, the script will mark all the emails it downloads as Read in the IMAP server
+	:param email_parts: What parts of the email to download. Options are:
+		"headers" or "metadata": Email headers.
+		"body"            : Email body.
+		"no-attachments"  : Email headers + body without attachments.
+		"attachments"     : Just the email attachments.
+		"all"             : Entire email.
+	:param start_mailbox: Number of mailbox from which to start downloading emails, effectively skipping all previous ones
+	:param start_email: Number of email in the mailbox from which to start downloading, effectively skipping all previous ones
+	:param output_dir: Directory where to output the downloaded email.
+		A folder will be created for each mailbox and the emails of that mailbox will be placed there
+	:param verbosity_level: Available levels are:
+		0) No messages are printed
+		1) A message is printed for each user
+		2) A message is printed for each mailbox in the user's account
+	:return: None
+	"""
 	# Classes used to catch imaplib exceptions
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
@@ -311,6 +339,35 @@ def batch_scrape(
 		timeout: Optional[Union[float, int]] = 1.0,
 		verbosity_level: Optional[int] = 2
 ):
+	"""Download all the emails of multiple email accounts written in a file via IMAP. Downloaded emails are saved under `output_dir/username/mailbox_name/`
+
+	:param file:
+		A file containing login credentials in the form of `username:password`
+		or `username@example.com:password` separated by newlines.
+		You can specify a custom delimiter instead of `:` by using the file_delimiter parameter
+	:param host: IP or domain of the IMAP server
+	:param port: Port on which the IMAP server is listening
+	:param use_ssl: Use SSL when connecting to the server
+	:param login_only: Don't download any emails, just log in and write the valid credentials to the output file or stdout if no output file is given
+	:param file_delimiter: Delimiter which separates the email from the password in the input file
+	:param start_line: Line number from which to start parsing the input file, effectively skipping all previous ones
+	:param try_common_hosts: If connecting to host fails, try connecting to common subdomains of the host on which the server might be running
+	:param mark_as_read: When set to True, the script will mark all the emails it downloads as Read in the IMAP server
+	:param email_parts: What parts of the email to download. Options are:
+		"headers" or "metadata": Email headers.
+		"body"            : Email body.
+		"no-attachments"  : Email headers + body without attachments.
+		"attachments"     : Just the email attachments.
+		"all"             : Entire email.
+	:param output_dir: Directory where to output the downloaded email.
+		A folder will be created for each mailbox and the emails of that mailbox will be placed there
+	:param timeout: Maximum number of seconds to try and establish a connection
+	:param verbosity_level: Available levels are:
+		0) No messages are printed
+		1) A message is printed for each user
+		2) A message is printed for each mailbox in the user's account
+	:return:
+	"""
 	invalid_hosts = set()
 	valid_hosts = set()
 
@@ -446,7 +503,9 @@ def batch_scrape(
 
 
 def main():
-	program_description = "Download all emails from an email account on an IMAP server and save the raw email contents to disk"
+	program_description = "Download all emails from an email account on an IMAP server and save the raw email contents to disk\n"
+	program_description += "Downloaded emails are saved under `output_dir/username/mailbox_name/"
+
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
 	ap.add_argument("--help", action="help", help="show this help message and exit\n\n")
 
@@ -457,14 +516,13 @@ def main():
 	ap.add_argument("-h", "--host", dest="host",
 							help="IP or full domain name of the server\n\n")
 	ap.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
-							help="If connecting to host fails, try variations such as mail.example.com and imap.example.com\n\n")
+							help="If connecting to host fails, try subdomains such as mail.example.com and imap.example.com\n\n")
 
 
 	credentials_args.add_argument("-f", "--file",
 									help="Credentials file.\n" +
 										"A file containing login credentials in the form of `username:password`\n" +
 										"or `username@example.com:password` separated by newlines\n" +
-										"Downloaded emails are saved under `output_dir/username/mailbox_name/\n"
 										"You can specify a custom delimiter instead of `:` by using the -d option\n\n")
 	ap.add_argument("-d", "--file-delimiter", default=":",
 							help="The character which separates the username and password in the credentials file\n\n")
@@ -500,9 +558,9 @@ def main():
 							help="Specify what parts of the email to download\n" +
 								"headers|metadata: Email headers\n" +
 								"body            : Email body\n" +
-								"no-attachments  : Email headers + body without attachments\n"
-								"attachments     : Just the email attachments\n"
-								"all             : Whole email\n\n")
+								"no-attachments  : Email headers + body without attachments\n" +
+								"attachments     : Just the email attachments\n" +
+								"all             : Entire email\n\n")
 	ap.add_argument("-o", "--output-dir",
 							help="Output Directory. Defaults to the same value as `host`.\n" +
 								"Pass an empty string to download emails to the current working directory\n\n")
@@ -510,7 +568,7 @@ def main():
 							help="Verbosity level. Default level is 2. Available levels are:\n" +
 								"0) No messages are printed\n" +
 								"1) A message is printed for each user \n" +
-								"2) A message is printed for each mailbox in a user's account \n")
+								"2) A message is printed for each mailbox in the user's account \n")
 
 	args = ap.parse_args()
 	username = args.username
