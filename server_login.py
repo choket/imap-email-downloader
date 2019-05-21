@@ -127,36 +127,36 @@ def server_login(user_or_email_or_combo=None, password=None, host=None, port=Non
 
 def main():
 	program_description = "Test whether login credentials are valid on the supplied IMAP server"
-	arg_parser = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-	arg_parser.add_argument('--help', action='help', help='show this help message and exit\n\n')
+	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
+	ap.add_argument('--help', action='help', help='show this help message and exit\n\n')
 
-	arg_parser.add_argument("-u", "--user", "--username", dest="username", required=True,
+	ap.add_argument("-u", "--user", "--username", dest="username", required=True,
 							help="Username or combo.\n" +
 								"The username can either be the full email: `bob@example.com` or just the username: `bob`\n" +
 								"The combo can contain the email address and password, separated by `:`\n" +
 								"along with other data commonly found in database dumps\n\n")
-	arg_parser.add_argument("-p", "--pass", "--password", dest="password",
+	ap.add_argument("-p", "--pass", "--password", dest="password",
 							help="Password. If omitted you will be prompted to enter it when connecting to the server\n\n")
 
-	arg_parser.add_argument("-h", "--host", dest="host",
+	ap.add_argument("-h", "--host", dest="host",
 							help="IP or full domain name of the server\n\n")
 
-	arg_parser.add_argument("-P", "--port",
+	ap.add_argument("-P", "--port",
 							help="Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used)\n\n")
 
-	arg_parser.add_argument("-s", "--ssl", action="store_true",
+	ap.add_argument("-s", "--ssl", action="store_true",
 							help="Use SSL when connecting to the server\n\n")
 
-	arg_parser.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
+	ap.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
 							help="If connecting to host fails, try variations such as mail.example.com and imap.example.com\n\n")
 
-	arg_parser.add_argument("-t", "--timeout", default=1.0,
+	ap.add_argument("-t", "--timeout", default=1.0,
 							help="Timeout to be used when connecting to the server (in seconds).\n" +
 								"Default is 1.\n" +
 								"Anything below 0.5 will result in false-negatives, depending on the server.\n" +
 								"If using a proxy, specify a higher timeout than normally.\n\n")
 
-	args = arg_parser.parse_args()
+	args = ap.parse_args()
 	username = args.username
 	password = args.password
 	host = args.host

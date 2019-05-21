@@ -60,9 +60,9 @@ def parse_line(line, include_username=False, delimiter=":"):
 
 def main():
 	program_description = "Extract email and password from text containing additional data as well.\n" + \
-						  'Returns the email and password joined by ":" or whatever you set as the delimiter using -d\n' + \
-						  "Example: user@example.com:my_password\n" + \
-						  "Or with -u: user:user@example.com:my_password"
+						'Returns the email and password joined by ":" or whatever you set as the delimiter using -d\n' + \
+						"Example: user@example.com:my_password\n" + \
+						"Or with -u: user:user@example.com:my_password"
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter)
 
 	ap.add_argument("line",
