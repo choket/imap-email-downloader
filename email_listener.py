@@ -1,12 +1,19 @@
 import imaplib
 import time
+from typing import Optional, Union, List, Callable, Tuple, Dict
 
 
-def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callback_function=print, callback_arguments=(), callback_kw_arguments={}):
+def email_listen(
+		server_connection: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+		mailbox: str,
+		search_query: Union[str, List[str]],
+		sleep_timer: Optional[Union[float, int]] = 10.0,
+		callback_function: Optional[Callable] = print,
+		callback_arguments: Optional[Union[List, Tuple]] = (),
+		callback_kw_arguments: Optional[Dict] = {}
+):
 	"""
-
-
-	:param server_connection: imaplib.IMAP4 or imaplib.IMAP4_SSL object which is already logged in to a server
+	:param server_connection: imaplib object which is already logged in to a server
 	:param mailbox: Name of mailbox
 	:param search_query: RFC 3501 compliant IMAP search query
 	:param sleep_timer: Number of seconds to sleep
@@ -19,7 +26,8 @@ def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callb
 	"""
 
 	try:
-		server_connection.select(mailbox)
+		# TODO implement parameter which controls the readonly
+		server_connection.select(mailbox, readonly=False)
 	except (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
 		# TODO implement proper exception handling
 		raise
@@ -27,7 +35,7 @@ def email_listen(server_connection, mailbox, search_query, sleep_timer=10, callb
 	while True:
 		try:
 			response, emails_data = server_connection.search(None, search_query)
-		except:
+		except Exception as e:
 			# Catch all exceptions because script needs to be resilient
 			time.sleep(sleep_timer)
 			continue

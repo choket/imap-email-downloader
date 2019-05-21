@@ -1,7 +1,5 @@
 # !/usr/bin/env python3
 
-# TODO Fucking comment all this shit nigga
-
 # WEIRD INDEXES EXPLANATION:
 # imaplib's fetch() command returns the server response in a weirdly formatted way.
 # It returns a tuple containing the server's response status and response data.
@@ -17,6 +15,7 @@ import re
 import socket
 import sys
 import time
+from typing import Union, Optional
 
 from parse_credentials_from_line import parse_line
 from server_login import server_login, email_scraper_errors, login_error, connection_error
@@ -30,7 +29,9 @@ class server_error(email_scraper_errors):
 		return self.message
 
 
-def _count_lines(filename):
+def _count_lines(
+		filename: str
+):
 	"""
 	Returns number of lines in a file in an optimized way. Useful for big files
 
@@ -49,11 +50,15 @@ def _count_lines(filename):
 	return lines
 
 
-def _download_email_attachments(server_connection, email_number, output_dir="attachments"):
+def _download_email_attachments(
+		server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+		email_number: str,
+		output_dir: Optional[str] = "attachments"
+):
 	# output_dir is converted to bytes so that the attachment name, which is bytes, can be appended to it
 	output_dir = bytes(output_dir, encoding="utf-8")
 
-	status, body_structure = server_connection.fetch(email_number, "(BODYSTRUCTURE)")
+	status, body_structure = server.fetch(email_number, "(BODYSTRUCTURE)")
 
 	# See comment at start of file for explanation about the indexes
 	body_structure = body_structure[0]
@@ -94,7 +99,7 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 
 					attachment_name += re.sub(rb"=([0-9A-F]{2})", hex_to_byte, attachment_name_part)
 
-		status, attachment_data_container = server_connection.fetch(email_number, "(BODY[{}])".format(i + 1))
+		status, attachment_data_container = server.fetch(email_number, "(BODY[{}])".format(i + 1))
 
 		# TODO Check if response == "OK"
 
@@ -125,8 +130,13 @@ def _download_email_attachments(server_connection, email_number, output_dir="att
 
 
 def scrape_emails(
-		server, mark_as_read=False, email_parts="all", start_mailbox=1,
-		start_email=1, output_dir=None, verbosity_level=2
+		server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+		mark_as_read: Optional[bool] = False,
+		email_parts: Optional[str] = "all",
+		start_mailbox: Optional[int] = 1,
+		start_email: Optional[int] = 1,
+		output_dir: Optional[str] = None,
+		verbosity_level: Optional[int] = 2
 ):
 	# Classes used to catch imaplib exceptions
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
@@ -243,7 +253,7 @@ def scrape_emails(
 				sys.stdout.flush()
 
 			if email_parts == "attachments":
-				num_attachments = _download_email_attachments(server_connection=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_name, i))
+				num_attachments = _download_email_attachments(server=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_name, i))
 				continue
 			elif email_parts == "no-attachments":
 				# TODO implement this
@@ -287,8 +297,19 @@ def scrape_emails(
 
 
 def batch_scrape(
-		file, host=None, port=None, use_ssl=False, login_only=False, file_delimiter=":", start_line=1,
-		try_common_hosts=False, mark_as_read=False, email_parts="all", output_dir=None, timeout=1.0, verbosity_level=2
+		file: str,
+		host: Optional[str] = None,
+		port: Optional[int] = None,
+		use_ssl: Optional[bool] = False,
+		login_only: Optional[bool] = False,
+		file_delimiter: Optional[str] = ":",
+		start_line: Optional[int] = 1,
+		try_common_hosts: Optional[bool] = False,
+		mark_as_read: Optional[bool] = False,
+		email_parts: Optional[str] = "all",
+		output_dir: Optional[str] = None,
+		timeout: Optional[Union[float, int]] = 1.0,
+		verbosity_level: Optional[int] = 2
 ):
 	invalid_hosts = set()
 	valid_hosts = set()
@@ -314,7 +335,7 @@ def batch_scrape(
 
 			for i, line in enumerate(credentials_file, 1):
 
-				credentials = parse_line(line, include_username=True, delimiter=file_delimiter)
+				credentials = parse_line(line, delimiter=file_delimiter)
 
 				# parse_line() function returns None if it couldn't find any credentials in the line specified
 				if credentials is None:

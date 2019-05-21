@@ -3,8 +3,13 @@ import argparse
 import re
 import sys
 
+from typing import Optional
 
-def parse_line(line, include_username=False, delimiter=":"):
+
+def parse_line(
+		line: str,
+		delimiter: Optional[str] = ":"
+):
 	# TODO add support for byte strings
 
 	line = line.rstrip()
@@ -14,7 +19,7 @@ def parse_line(line, include_username=False, delimiter=":"):
 	data_parts = [part for part in data_parts if part]
 
 	# if len(data_parts) == 2:
-	#     username = data_parts[0].split("@")[0] if include_username else None
+	#     username = data_parts[0].split("@")[0]
 	#     return {"email": data_parts[0], "password": data_parts[1], "username": username}
 
 	email = None
@@ -54,33 +59,27 @@ def parse_line(line, include_username=False, delimiter=":"):
 		# Line doesn't contain login credentials
 		return None
 	else:
-		username = email.split("@")[0] if include_username else None
+		username = email.split("@")[0]
 		return {"email": email, "password": password, "username": username}
 
 
 def main():
 	program_description = "Extract email and password from text containing additional data as well.\n" + \
 						'Returns the email and password joined by ":" or whatever you set as the delimiter using -d\n' + \
-						"Example: user@example.com:my_password\n" + \
-						"Or with -u: user:user@example.com:my_password"
+						"Example: user@example.com:my_password\n"
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter)
 
 	ap.add_argument("line",
 					help="Text containing the email and password.")
-	ap.add_argument("-u", "--username", default=False, action="store_true",
-					help="Return the username as well as the email and password")
 	ap.add_argument("-d", "--delimiter", default=":",
 					help="Delimiter to use break up different parts of data")
 
 	args = ap.parse_args()
 
-	credentials = parse_line(args.line, args.username, args.delimiter)
+	credentials = parse_line(args.line, args.delimiter)
 
 	if credentials:
-		if credentials["username"]:
-			print(credentials["username"], credentials["email"], credentials["password"], sep=":")
-		else:
-			print(credentials["email"], credentials["password"], sep=":")
+		print(credentials["email"], credentials["password"], sep=":")
 	else:
 		sys.stderr.write("Could not extract email and password!\n")
 

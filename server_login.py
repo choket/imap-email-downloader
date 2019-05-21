@@ -5,6 +5,8 @@ import imaplib
 import socket
 import sys
 
+from typing import Optional, Union
+
 
 class email_scraper_errors(Exception): pass
 
@@ -39,7 +41,16 @@ class login_error(email_scraper_errors):
 		return self.message
 
 
-def server_login(user_or_email_or_combo=None, password=None, host=None, port=None, use_ssl=False, try_common_hosts=False, no_login=False, timeout=None):
+def server_login(
+		user_or_email_or_combo,
+		password: Optional[str] = None,
+		host: Optional[str] = None,
+		port: Optional[int] = None,
+		use_ssl: Optional[bool] = False,
+		try_common_hosts: Optional[bool] = False,
+		no_login: Optional[bool] = False,
+		timeout: Optional[Union[float, int]] = None
+) -> Union[imaplib.IMAP4, imaplib.IMAP4_SSL]:
 	timeout_errors = (socket.timeout, TimeoutError)
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
