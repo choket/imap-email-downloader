@@ -208,12 +208,6 @@ def scrape_emails(
 	elif email_parts == "body":
 		# TODO This also downloads attachments. Change it so it only downloads the body
 		imap_email_parts = "BODY[TEXT]"
-	elif email_parts == "no-attachments":
-		# There is no official way to download emails without the attachments, so instead ...
-		#
-		# TODO This totally doesn't work for a lot of servers. !!!!!!!!!!!!!!!!!!!
-		# TODO currently doesn't work properly as BODY[1.0] doesn't return the boundary end for the previous section and Thunderbird doesn't display the emails correctly
-		imap_email_parts = "BODY[HEADER] BODY[1.0]"
 	elif email_parts == "attachments":
 		# Downloading email attachments is handled below at the server.fetch() line
 		pass
@@ -283,10 +277,6 @@ def scrape_emails(
 			if email_parts == "attachments":
 				num_attachments = _download_email_attachments(server=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_name, i))
 				continue
-			elif email_parts == "no-attachments":
-				# TODO implement this
-				continue
-
 
 			try:
 				response, fetched_parts = server.fetch(i, "(FLAGS {})".format(imap_email_parts))
