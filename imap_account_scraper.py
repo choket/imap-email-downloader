@@ -42,10 +42,10 @@ def _count_lines(
 	lines = 0
 	buf_size = 1024 * 1024
 
-	with open(filename, 'rb') as f:
+	with open(filename, "rb") as f:
 		read_content = f.read(buf_size)
 		while read_content:
-			lines += read_content.count(b'\n')
+			lines += read_content.count(b"\n")
 			read_content = f.read(buf_size)
 
 	return lines
@@ -86,7 +86,7 @@ def _download_email_attachments(
 		if attachment_name.startswith(b"=?"):
 
 			# The attachment name can consist of multiple sections each encoded with different charsets
-			attachment_section_pattern = re.compile(rb'=\?(.+?)\?=(?: |$)')
+			attachment_section_pattern = re.compile(rb"=\?(.+?)\?=(?: |$)")
 			attachment_name_sections = attachment_section_pattern.findall(attachment_name)
 
 			attachment_name = b""
@@ -301,8 +301,8 @@ def scrape_emails(
 			email_filename = i + "-" + email_read_status + ".eml"
 			email_file_path = os.path.join(mailbox_output_directory, email_filename)
 
-			with open(email_file_path, "wb") as fh2:
-				fh2.write(email_contents)
+			with open(email_file_path, "wb") as email_file:
+				email_file.write(email_contents)
 		else:
 			# Check if there are no emails in mailbox
 			if not emails and verbosity_level == 2:
@@ -467,7 +467,7 @@ def batch_scrape(
 								sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
 
 							try:
-								output_file = open(output_dir, 'a')
+								output_file = open(output_dir, "a")
 							except IOError as e:
 								sys.stderr.write("Could not open output file. Reason:" + str(e) + "\n")
 							else:

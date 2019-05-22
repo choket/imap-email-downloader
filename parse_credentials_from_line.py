@@ -72,7 +72,7 @@ def parse_line(
 
 def main():
 	program_description = "Extract email, password and username from text containing additional data as well.\n" + \
-						'Returns the email and password joined by ":" or whatever you set as the delimiter using -d\n' + \
+						"Returns the email and password joined by \":\" or whatever you set as the delimiter using -d\n" + \
 						"Example: user@example.com:my_password\n"
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter)
 
@@ -91,5 +91,5 @@ def main():
 		sys.stderr.write("Could not extract email and password!\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	main()

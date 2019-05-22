@@ -4,7 +4,7 @@ from typing import Optional, Union, List, Callable, Tuple, Dict
 
 
 def email_listen(
-		server_connection: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+		server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
 		mailbox: str,
 		search_criteria: Union[str, List[str]],
 		sleep_timer: Optional[Union[float, int]] = 10.0,
@@ -16,7 +16,7 @@ def email_listen(
 	Setup an email listener which will search for existing and incoming emails that match a criterion,
 	and then apply a callback function to those emails. *IMPORTANT: the first argument supplied to the callback function is the email number*
 
-	:param server_connection: imaplib object which is already logged in to a server
+	:param server: imaplib object which is already logged in to a server
 	:param mailbox: Name of mailbox folder on which to listen for emails. Eg: "Inbox", "Drafts", "Sent"
 	:param search_criteria: RFC 3501 compliant IMAP search criteria. Can also be a list of multiple search criteria
 	:param sleep_timer: Number of seconds to sleep in between each scan
@@ -30,14 +30,14 @@ def email_listen(
 
 	try:
 		# TODO implement parameter which controls the readonly
-		server_connection.select(mailbox, readonly=False)
+		server.select(mailbox, readonly=False)
 	except (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error):
 		# TODO implement proper exception handling
 		raise
 
 	while True:
 		try:
-			response, emails_data = server_connection.search(None, search_criteria)
+			response, emails_data = server.search(None, search_criteria)
 		except Exception as e:
 			# Catch all exceptions because script needs to be resilient
 			time.sleep(sleep_timer)

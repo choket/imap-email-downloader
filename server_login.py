@@ -156,7 +156,7 @@ def server_login(
 def main():
 	program_description = "Test whether login credentials are valid on the supplied IMAP server"
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-	ap.add_argument('--help', action='help', help='show this help message and exit\n\n')
+	ap.add_argument("--help", action="help", help="show this help message and exit\n\n")
 
 	ap.add_argument("-u", "--user", "--username", dest="username", required=True,
 							help="Username or combo.\n" +
@@ -204,5 +204,5 @@ def main():
 		sys.stdout.write("Valid!\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import pytest
 import re
+
 from imap_account_scraper import parse_line
 
 
@@ -14,5 +14,5 @@ def test_hexadecimal():
                 print(password)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_hexadecimal()
