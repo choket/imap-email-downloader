@@ -1,3 +1,7 @@
+# MIT License https://opensource.org/licenses/MIT
+#
+# Copyright (c) 2019 Stefan Stojanovski https://github.com/choket
+
 import imaplib
 import time
 from typing import Optional, Union, List, Callable, Tuple, Dict

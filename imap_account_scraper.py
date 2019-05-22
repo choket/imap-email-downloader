@@ -1,11 +1,14 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
+
+# MIT License https://opensource.org/licenses/MIT
+#
+# Copyright (c) 2019 Stefan Stojanovski https://github.com/choket
 
 # WEIRD INDEXES EXPLANATION:
 # imaplib's fetch() command returns the server response in a weirdly formatted way.
 # It returns a tuple containing the server's response status and response data.
 # Then additionally, the response data is actually a list containing some metadata and the data itself.
 # So, depending on what data was fetch()'ed, we need to dig through the response accordingly to find the actual data
-
 
 import argparse
 import base64

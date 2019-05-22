@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# MIT License https://opensource.org/licenses/MIT
+#
+# Copyright (c) 2019 Stefan Stojanovski https://github.com/choket
+
 import argparse
 import re
 import sys
