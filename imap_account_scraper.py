@@ -447,11 +447,6 @@ def batch_scrape(
 							sys.stdout.write(str(error) + "\n")
 
 						break
-					except KeyboardInterrupt:
-						# catch KeyboardInterrupt exception and then raise it again
-						# This is done so that the broad exception handling code below doesn't also catch this exception,
-						# which will prevent the program from exiting when pressing Ctrl + C
-						raise
 					except Exception as e:
 						# Catch any unhandled exceptions and write them to a log file
 						# The script should continue parsing the credentials file until the end, regardless if an exception happened
