@@ -10,7 +10,7 @@ from database dumps.
 ## Installation
 **Python 3.5 or newer required!**<br>
 Clone or download this project to whatever location you like.<br>
-The important file are:
+The important files are:
 * \_\_init\_\_.py
 * email_listener.py
 * imap_email_downloader.py
@@ -21,13 +21,13 @@ You don't need to download the rest for the program to work.
 
 ## Usage
 Go to the location where you cloned or downloaded the program and open a terminal.<br>
-Then you can run the program by typing:
+Then you can run the program by executing:
 ```bash
-python3 imap_email_downloader.py <arguments>
+python3 imap_email_downloader.py \<arguments>
 ```
 Or if you are on Linux or Mac:
 ```bash
-./imap_email_downloader.py <arguments>
+./imap_email_downloader.py \<arguments>
 ```
 **Note:** If you get an error saying `'python3' is not recognized ...` then replace `python3` with `python`<br>
 _Keep in mind that you need to be running python 3.5 or newer for the program to work._
@@ -54,7 +54,7 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | -r,<br> --mark-as-read,<br>_Default: False_ | Use this option to mark the emails as read when downloading them. |
 | -l,<br> --login-only<br>_Default: False_ | Just check whether the username and password are valid and don't download any emails |
 | --parts,<br> --email-parts<br>_Default: "all"_ | Specify what parts of the email to download. Options are:<br><table> <tr><td>**headers** or **metadata**</td><td>Email headers</td></tr> <tr><td>**body**</td><td>Email body</td></tr> <tr><td>**attachments**</td><td>Just the email attachments</td></tr> <tr><td>**all**</td><td>Entire email</td></tr></table>|
-| -o,<br> --output-dir<br>_Default: gets value_<br>_from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory |
+| -o,<br> --output-dir<br>_Default: gets value<br>from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory |
 | -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account<br>|
 |    --help   | Shows a help message along with usage info |
 </details>
