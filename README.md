@@ -22,11 +22,11 @@ You don't need to download the rest for the program to work.
 ## Usage
 Go to the location where you cloned or downloaded the program and open a terminal.<br>
 Then you can run the program by executing:
-```bash
+```
 python3 imap_email_downloader.py <arguments>
 ```
 Or if you are on Linux or Mac:
-```bash
+```
 ./imap_email_downloader.py <arguments>
 ```
 **Note:** If you get an error saying `'python3' is not recognized ...` then replace `python3` with `python`<br>
@@ -39,7 +39,7 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
   
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 | ------------- |-------------|
-| **-u,<br> --user,<br> --username<br>Required** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
+| **-u,<br> --user,<br> --username<br>_Required_** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
 | -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option | 
 | -d<br> --delimiter,<br> --file-delimiter | The character which separates the username and password in the credentials file |
@@ -58,6 +58,9 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account<br>|
 |    --help   | Shows a help message along with usage info |
 </details>
+
+### Examples
+Basic example to download emails from
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
