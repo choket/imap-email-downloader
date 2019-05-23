@@ -32,8 +32,11 @@ Or if you are on Linux or Mac:
 **Note:** If you get an error saying `'python3' is not recognized ...` then replace `python3` with `python`<br>
 _Keep in mind that you need to be running python 3.5 or newer for the program to work._
 
-### Available Arguments:
 
+### Available Arguments:
+<details>
+  <summary>Click to expand!</summary>
+  
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 | ------------- |-------------|
 | **-u,<br> --user,<br> --username<br>Required** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
@@ -54,6 +57,6 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | -o,<br> --output-dir<br>_Default: gets value_<br>_from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory |
 | -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account<br>|
 |    --help   | Shows a help message along with usage info |
-
+</details>``````
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
