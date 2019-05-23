@@ -9,8 +9,9 @@ import getpass
 import imaplib
 import socket
 import sys
-
 from typing import Optional, Union
+
+from parse_line import parse_line
 
 
 class email_scraper_errors(Exception): pass
@@ -76,8 +77,12 @@ def server_login(
 	timeout_errors = (socket.timeout, TimeoutError)
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
+
+	# Implement ability to specify custom delimiter instead of ":"
 	if ":" in user_or_email_or_combo:
-		user_or_email, password = user_or_email_or_combo.split(":", 1)
+		credentials = parse_line(user_or_email_or_combo, ":")
+		user_or_email = credentials["email"]
+		password = credentials["password"]
 	else:
 		user_or_email = user_or_email_or_combo
 

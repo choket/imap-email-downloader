@@ -169,6 +169,8 @@ def scrape_emails(
 		2) A message is printed for each mailbox in the user's account
 	:return: None
 	"""
+	# TODO If mark_as_read is set to True, ask the user for confirmation
+
 	# Classes used to catch imaplib exceptions
 	imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
@@ -495,32 +497,44 @@ def main():
 	program_description += "Downloaded emails are saved under `output_dir/username/mailbox_name/"
 
 	ap = argparse.ArgumentParser(description=program_description, formatter_class=argparse.RawTextHelpFormatter, add_help=False)
-	ap.add_argument("--help", action="help", help="show this help message and exit\n\n")
-
 
 	credentials_args = ap.add_mutually_exclusive_group(required=True)
 
 
-	ap.add_argument("-h", "--host", dest="host",
-							help="IP or full domain name of the server\n\n")
-	ap.add_argument("-c", "--common", "--common-hosts", dest="common_hosts", action="store_true",
-							help="If connecting to host fails, try subdomains such as mail.example.com and imap.example.com\n\n")
-
+	credentials_args.add_argument("-u", "--user", "--username", dest="username",
+									help="Username or complete credentials.\n" +
+										"The username can either be the full email: `bob@example.com` or just the username: `bob`\n" +
+										"Or it can contain the email address and password, separated by `:`\n" +
+										"along with other data commonly found in database dumps\n\n")
+	ap.add_argument("-p", "--pass", "--password", dest="password",
+							help="Password. If omitted you will be prompted to enter it when connecting to the server\n\n")
 
 	credentials_args.add_argument("-f", "--file",
 									help="Credentials file.\n" +
 										"A file containing login credentials in the form of `username:password`\n" +
 										"or `username@example.com:password` separated by newlines\n" +
 										"You can specify a custom delimiter instead of `:` by using the -d option\n\n")
-	ap.add_argument("-d", "--file-delimiter", default=":",
+	ap.add_argument("-d", "--delimiter", "--file-delimiter", default=":",
 							help="The character which separates the username and password in the credentials file\n\n")
-	credentials_args.add_argument("-u", "--user", "--username", dest="username",
-									help="Username or combo.\n" +
-										"The username can either be the full email: `bob@example.com` or just the username: `bob`\n" +
-										"The combo can contain the email address and password, separated by `:`\n" +
-										"along with other data commonly found in database dumps\n\n")
-	ap.add_argument("-p", "--pass", "--password", dest="password",
-							help="Password. If omitted you will be prompted to enter it when connecting to the server\n\n")
+
+	ap.add_argument("-h", "--host", dest="host",
+							help="IP or full domain name of the IMAP server\n\n")
+
+	ap.add_argument("-P", "--port",
+							help="Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used)\n\n")
+
+	ap.add_argument("-c", "--common-hosts", dest="common_hosts", action="store_true",
+							help="If connecting to host fails, try subdomains such as mail.example.com and imap.example.com\n\n")
+
+	ap.add_argument("-s", "--ssl", action="store_true",
+							help="Use SSL when connecting to the server\n\n")
+
+	ap.add_argument("-t", "--timeout", default=1.0,
+							help="Timeout to be used when connecting to the server (in seconds).\n" +
+								"Default is 1.\n" +
+								"Anything below 0.5 will result in false-negatives, depending on the server.\n" +
+								"If using a proxy, specify a higher timeout than normally.\n\n")
+
 	ap.add_argument("-L", "--line", "--start-line", dest="start_line", default=1,
 							help="Start parsing the credentials file from the N-th line. (Skip the first N-1 lines)\n\n")
 	ap.add_argument("-M", "--mailbox", "--start-mailbox", dest="start_mailbox", default=1,
@@ -528,35 +542,27 @@ def main():
 	ap.add_argument("-E", "--email", "--start-email", dest="start_email", default=1,
 							help="Start downloading emails from the N-th email in the mailbox. (Skip the first N-1 emails)\n\n")
 
-	ap.add_argument("-t", "--timeout", default=1.0,
-							help="Timeout to be used when connecting to the server (in seconds).\n" +
-								"Default is 1.\n" +
-								"Anything below 0.5 will result in false-negatives, depending on the server.\n" +
-								"If using a proxy, specify a higher timeout than normally.\n\n")
-	ap.add_argument("-P", "--port",
-							help="Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used)\n\n")
-	ap.add_argument("-s", "--ssl", action="store_true",
-							help="Use SSL when connecting to the server\n\n")
-	ap.add_argument("-m", "--mark-as-read", action="store_true",
+	ap.add_argument("-r", "--mark-as-read", action="store_true",
 							help="Use this option to mark the emails as read when downloading them.\n" +
 								"Default is to NOT mark them as read\n\n")
 	ap.add_argument("-l", "--login-only", action="store_true",
 							help="Just check whether the username and password are valid and don't download any emails\n\n")
 	ap.add_argument("--parts", "--email-parts", choices=("headers", "metadata", "body", "no-attachments", "attachments", "all"), default="all",
-							help="Specify what parts of the email to download\n" +
+							help="Specify what parts of the email to download. Options are:\n" +
 								"headers|metadata: Email headers\n" +
 								"body            : Email body\n" +
-								"no-attachments  : Email headers + body without attachments\n" +
 								"attachments     : Just the email attachments\n" +
 								"all             : Entire email\n\n")
 	ap.add_argument("-o", "--output-dir",
-							help="Output Directory. Defaults to the same value as `host`.\n" +
+							help="Output directory (relative or absolute). Defaults to the same value as `host`.\n" +
 								"Pass an empty string to download emails to the current working directory\n\n")
 	ap.add_argument("-v", "--verbosity-level", choices=("0", "1", "2"), default="2",
 							help="Verbosity level. Default level is 2. Available levels are:\n" +
 								"0) No messages are printed\n" +
-								"1) A message is printed for each user \n" +
-								"2) A message is printed for each mailbox in the user's account \n")
+								"1) A message is printed for each user\n" +
+								"2) A message is printed for each mailbox in the user's account\n")
+
+	ap.add_argument("--help", action="help", help="Show a help message along with usage info")
 
 	args = ap.parse_args()
 	username = args.username
