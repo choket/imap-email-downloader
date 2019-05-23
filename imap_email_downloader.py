@@ -20,7 +20,7 @@ import sys
 import time
 from typing import Union, Optional
 
-from parse_credentials_from_line import parse_line
+from parse_line import parse_line
 from server_login import server_login, email_scraper_errors, login_error, connection_error
 
 

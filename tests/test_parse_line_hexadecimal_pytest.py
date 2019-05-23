@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 
-from imap_account_scraper import parse_line
+from imap_email_downloader import parse_line
 
 
 def test_hexadecimal():
