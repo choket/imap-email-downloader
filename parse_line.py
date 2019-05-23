@@ -38,6 +38,8 @@ def parse_line(
 	password = None
 
 	for part in data_parts:
+		# TODO If there is encrypted data in the line then that will be the password
+		# TODO so return None to prevent false-positive password matches
 
 		# Stop parsing the data_parts if we have already found the email and password
 		if password is not None and email is not None:
