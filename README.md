@@ -23,11 +23,11 @@ You don't need to download the rest for the program to work.
 Go to the location where you cloned or downloaded the program and open a terminal.<br>
 Then you can run the program by executing:
 ```bash
-python3 imap_email_downloader.py \<arguments>
+python3 imap_email_downloader.py <arguments>
 ```
 Or if you are on Linux or Mac:
 ```bash
-./imap_email_downloader.py \<arguments>
+./imap_email_downloader.py <arguments>
 ```
 **Note:** If you get an error saying `'python3' is not recognized ...` then replace `python3` with `python`<br>
 _Keep in mind that you need to be running python 3.5 or newer for the program to work._
