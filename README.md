@@ -1,7 +1,7 @@
 # IMAP Email Downloader
 Download emails from an email account on an IMAP server and save the raw email contents to disk.
 
-Comes with enhanced support for downloading emails from multiple accounts and automatically
+Comes with enhanced support for downloading emails from multiple accounts, and automatically
 extracting login details from text that contains additional data like IP addresses, dates and other
 encrypted data.<br>
 The latter functionality is useful to extract the login credentials directly 
@@ -33,11 +33,10 @@ Or if you are on Linux or Mac:
 _Keep in mind that you need to be running python 3.5 or newer for the program to work._
 
 ### Available Arguments:
-Arguments in **bold** are required:
 
 | Name | Description |
 | ------------- |-------------|
-| **-u,<br> --user,<br> --username** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
+| **-u,<br> --user,<br> --username<br>Required** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
 | -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option | 
 | -d<br> --delimiter,<br> --file-delimiter | The character which separates the username and password in the credentials file |
