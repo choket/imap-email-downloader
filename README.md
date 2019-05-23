@@ -7,7 +7,7 @@ encrypted data.<br>
 The latter functionality is useful to extract the login credentials directly 
 from database dumps.
 
-# Installation
+## Installation
 **Python 3.5 or newer required!**<br>
 Clone or download this project to whatever location you like.<br>
 The important file are:
@@ -19,7 +19,7 @@ The important file are:
 
 You don't need to download the rest for the program to work.
 
-# Usage
+## Usage
 Go to the location where you cloned or downloaded the program and open a terminal.<br>
 Then you can run the program by typing:
 ```bash
@@ -54,3 +54,6 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | -o,<br> --output-dir<br>_Default: gets value_<br>_from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory |
 | -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account<br>|
 |    --help   | Shows a help message along with usage info |
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
