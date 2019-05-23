@@ -34,7 +34,7 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 
 ### Available Arguments:
 
-| &nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp; | Description |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 | ------------- |-------------|
 | **-u,<br> --user,<br> --username<br>Required** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
