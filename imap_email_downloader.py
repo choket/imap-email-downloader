@@ -243,9 +243,9 @@ def scrape_emails(
 		num_emails = int(num_emails_data[0].decode())
 
 		# Replace invalid filename characters with underscores
-		for char in (b">", b"<", b":", b"\"", b"/", b"\\", b"|", b"?", b"*"):
+		for char in (">", "<", ":", "\"", "/", "\\", "|", "?", "*"):
 			if char in mailbox_name:
-				mailbox_name = mailbox_name.replace(char, b"_")
+				mailbox_name = mailbox_name.replace(char, "_")
 
 
 		if output_dir != "":
@@ -514,7 +514,7 @@ def main():
 										"A file containing login credentials in the form of `username:password`\n" +
 										"or `username@example.com:password` separated by newlines\n" +
 										"You can specify a custom delimiter instead of `:` by using the -d option\n\n")
-	ap.add_argument("-d", "--delimiter", "--file-delimiter", default=":",
+	ap.add_argument("-d", "--delimiter", "--file-delimiter", dest="file_delimiter", default=":",
 							help="The character which separates the username and password in the credentials file\n\n")
 
 	ap.add_argument("-h", "--host", dest="host",
