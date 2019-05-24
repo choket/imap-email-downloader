@@ -42,7 +42,7 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | **-u,<br> --user,<br> --username<br>_Required_** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
 | -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option | 
-| -d<br> --delimiter,<br> --file-delimiter | The character which separates the username and password in the credentials file |
+| -d,<br> --delimiter,<br> --file-delimiter | The character which separates the username and password in the credentials file |
 | -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the N-th line. (Skip the first N-1 lines) |
 | -h,<br> --host | IP or full domain name of the IMAP server |
 | -P,<br> --port |  Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used) |
@@ -60,7 +60,8 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 </details>
 
 ### Examples
-Basic example to download emails from
+Basic example to download all emails from a single account:<br>
+![Single account download](https://media.giphy.com/media/S5KZUaOQARqVshsrlG/giphy.gif)
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
