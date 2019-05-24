@@ -61,7 +61,11 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 
 ### Examples
 Basic example to download all emails from a single account:<br>
+<details>
+  <summary>Click to view gif</summary>
+  
 ![Single account download](https://media.giphy.com/media/fubXCYknvt7vHo3kHc/giphy.gif)
+</details>
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
