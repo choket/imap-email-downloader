@@ -35,7 +35,7 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 
 ### Available Arguments:
 <details>
-  <summary>Click to view arguments</summary>
+  <summary>View arguments</summary>
   
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 | ------------- |-------------|
@@ -61,11 +61,24 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 
 ### Examples
 Basic example to download all emails from a single account:<br>
+```bash
+python3 imap_email_downloader.py -u "choket@example.com"
+```
 <details>
-  <summary>Click to view gif</summary>
+  <summary>Output of the above command</summary>
   
 ![Single account download](https://media.giphy.com/media/fubXCYknvt7vHo3kHc/giphy.gif)
 </details>
+
+You can also supply multiple login credentials via a file. The file must contain login info for each account on a separate line:
+```
+bob@example.com:123456789
+23123412:john@example.com:2019-01-20:secret_password
+89.186.46.153:tony@example.com:qwertyiop
+...
+```
+In addition to the email and password, each line can also contain other information, as is common in many files of leaked databases.<br>
+This is where the program is most useful -- to download the emails of all accounts present in a database dump.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
