@@ -1,11 +1,9 @@
 # IMAP Email Downloader
-Download emails from an email account on an IMAP server and save the raw email contents to disk.
+A program to download emails from an email account on an IMAP server.
 
 Comes with enhanced support for downloading emails from multiple accounts, and automatically
-extracting login details from text that contains additional data like IP addresses, dates and other
-encrypted data.<br>
-The latter functionality is useful to extract the login credentials directly 
-from database dumps.
+extracting login details from text that contains additional data like IP addresses, dates and encrypted data.<br>
+The latter functionality is useful to extract the login credentials directly from dumps of leaked databases.
 
 ## Installation
 **Python 3.5 or newer required!**<br>
@@ -79,6 +77,15 @@ bob@example.com:123456789
 ```
 In addition to the email and password, each line can also contain other information, as is common in many files of leaked databases.<br>
 This is where the program is most useful -- to download the emails of all accounts present in a database dump.
+
+### _Note about modern email providers_
+Nowadays, email providers either have IMAP access disabled by default, or require the use of a one-time password to log in if you have 2FA enabled.<br> 
+This one-time password, also known as an _application password_, is different from the password you use to log in and needs to be generated manually.<br>
+The process of generating a one-time password depends on the email provider. Specific details on how to generate one can usually be found on the email provider's website.
+
+### For developers
+write this
+
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
