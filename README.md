@@ -79,7 +79,7 @@ In addition to the email and password, each line can also contain other informat
 This is where the program is most useful -- to download the emails of all accounts present in a database dump.
 
 ### _Note about modern email providers_
-Nowadays, email providers either have IMAP access disabled by default, or require the use of a one-time password to log in if you have 2FA enabled.<br> 
+Nowadays, email providers such as Gmail or Yahoo either have IMAP access disabled by default, or require the use of a one-time password to log in if you have 2FA enabled.<br> 
 This one-time password, also known as an _application password_, is different from the password you use to log in and needs to be generated manually.<br>
 The process of generating a one-time password depends on the email provider. Specific details on how to generate one can usually be found on the email provider's website.
 
