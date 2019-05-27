@@ -8,13 +8,13 @@ from typing import Optional, Union, List, Callable, Tuple, Dict
 
 
 def email_listener(
-	server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
-	mailbox: str,
-	search_criteria: Union[str, List[str]],
-	sleep_timer: Optional[Union[float, int]] = 10.0,
-	callback_function: Optional[Callable] = print,
-	callback_arguments: Optional[Union[List, Tuple]] = (),
-	callback_kw_arguments: Optional[Dict] = {}
+		server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+		mailbox: str,
+		search_criteria: Union[str, List[str]],
+		sleep_timer: Optional[Union[float, int]] = 10.0,
+		callback_function: Optional[Callable] = print,
+		callback_arguments: Optional[Union[List, Tuple]] = (),
+		callback_kw_arguments: Optional[Dict] = {}
 ):
 	"""
 	Setup an email listener which will search for existing and incoming emails that match a criterion,
