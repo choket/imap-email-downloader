@@ -5,17 +5,31 @@
 # Copyright (c) 2019 Stefan Stojanovski https://github.com/choket
 
 import datetime
+import imaplib
 import os
+from typing import Union, Optional
 
 from email_listener import email_listener
 from server_login import server_login
 
 
-def save_and_delete(email_index, server, mailbox):
-    output_directory = "C:\\Users\\Stefan\\Github emails"
+def save_and_delete(
+        email_index: str,
+        server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+        mailbox: str,
+        output_dir: Optional[str] = ""
+):
+    """
+    Function that downloads an email, and then deletes in on the remote server.
 
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    :param email_index: Index of email to be downloaded and deleted
+    :param server: Connection to the IMAP server
+    :param mailbox: Name of mailbox where the email is located
+    :param output_dir: Directory where to save the downloaded email
+    :return: None
+    """
+
+    os.makedirs(output_dir, exist_ok=True)
 
     server.select(mailbox)
 
@@ -24,7 +38,7 @@ def save_and_delete(email_index, server, mailbox):
 
     email_read_status = "READ" if "SEEN" in email_info[0][0].decode().upper() else "UNREAD"
     email_filename = email_index + "-" + email_read_status + str(datetime.datetime.now()).replace(":", "-") + ".eml"
-    email_file_path = os.path.join(output_directory, email_filename)
+    email_file_path = os.path.join(output_dir, email_filename)
 
     with open(email_file_path, "wb") as email_file:
         email_file.write(email_contents)
@@ -43,6 +57,8 @@ def main():
         password="12345678"  # Change this to your password
     )
 
+    output_dir = "C:\\Users\\Stefan\\Github emails"
+
     email_listener(
         server=server,
         mailbox="INBOX",
@@ -50,7 +66,8 @@ def main():
         callback_function=save_and_delete,
         callback_kw_arguments={
             "server": server,
-            "mailbox": "INBOX"
+            "mailbox": "INBOX",
+            "output_dir": output_dir
         }
     )
 
