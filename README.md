@@ -9,11 +9,11 @@ The latter functionality is useful to extract the login credentials directly fro
 **Python 3.5 or newer required!**<br>
 Clone or download this project to whatever location you like.<br>
 The important files are:
-* \_\_init\_\_.py
-* email_listener.py
-* imap_email_downloader.py
-* parse_line.py
-* server_login.py
+* `__init__.py`
+* `email_listener.py`
+* `imap_email_downloader.py`
+* `parse_line.py`
+* `server_login.py`
 
 You don't need to download the rest for the program to work.
 
