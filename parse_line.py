@@ -30,21 +30,10 @@ def parse_line(
 	# Remove empty parts
 	data_parts = [part for part in data_parts if part]
 
-	# if len(data_parts) == 2:
-	#     username = data_parts[0].split("@")[0]
-	#     return {"email": data_parts[0], "password": data_parts[1], "username": username}
-
 	email = None
 	password = None
 
 	for part in data_parts:
-		# TODO If there is encrypted data in the line then that will be the password
-		# TODO so return None to prevent false-positive password matches
-
-		# Stop parsing the data_parts if we have already found the email and password
-		if password is not None and email is not None:
-			break
-
 		# Find the email
 		if re.match(r"(^[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$)", part.strip(), re.IGNORECASE):
 			email = part
@@ -60,13 +49,21 @@ def parse_line(
 
 		if re.match(r"^[0-9a-f]{16,}$", part, re.IGNORECASE):
 			# Matches hexadecimal data with 16 or more bytes (128 bits). This catches most encrypted data
-			continue
+
+			# If there is hexadecimal data in the line, then that will be the password, which is encrypted, so stop parsing the line
+			password = None
+			break
+
 
 		if len(part) >= 32 and part.count("$") == 3:
 			# Matches data encrypted with modern ciphers
-			continue
 
-		password = part
+			# Similarly to above, the encrypted data will be the password so set it to None
+			password = None
+			break
+
+		if password is None:
+			password = part
 
 
 	if email is None or password is None:
