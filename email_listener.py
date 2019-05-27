@@ -18,7 +18,7 @@ def email_listener(
 ):
 	"""
 	Setup an email listener which will search for existing and incoming emails that match a criterion,
-	and then apply a callback function to those emails. *IMPORTANT: the first argument supplied to the callback function is the email number*
+	and then apply a callback function to those emails. *IMPORTANT: the first argument supplied to the callback function is the email index*
 
 	:param server: imaplib object which is already logged in to a server
 	:param mailbox: Name of mailbox folder on which to listen for emails. Eg: "Inbox", "Drafts", "Sent"
