@@ -18,7 +18,7 @@ The important files are:
 You don't need to download the rest for the program to work.
 
 ## Usage
-Go to the location where you cloned or downloaded the program and open a terminal.<br>
+Go to the location where you cloned or downloaded the files and open a terminal.<br>
 Then you can run the program by executing:
 ```
 python3 imap_email_downloader.py <arguments>
