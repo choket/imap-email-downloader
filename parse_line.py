@@ -93,7 +93,9 @@ def main():
 	credentials = parse_line(args.line, args.delimiter)
 
 	if credentials:
-		print(credentials["email"], credentials["password"], credentials["username"], sep=":")
+		print("Email:", credentials["email"])
+		print("Password:", credentials["password"])
+		print("Username:", credentials["username"])
 	else:
 		sys.stderr.write("Could not extract email and password!\n")
 
