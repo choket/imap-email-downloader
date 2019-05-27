@@ -37,24 +37,24 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
   
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description |
 | ------------- |-------------|
-| **-u,<br> --user,<br> --username<br>_Required_** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
-| -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
-| -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option | 
-| -d,<br> --delimiter,<br> --file-delimiter<br>_Default: ":"_ | The character which separates the username and password in the credentials file |
-| -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the N-th line. (Skip the first N-1 lines) |
-| -h,<br> --host | IP or full domain name of the IMAP server |
-| -P,<br> --port<br>_Default: 143<br> or 993 if **-s** is used |  Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used) |
+| **-u,<br> --user,<br> --username<br>_Required_** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument.|
+| -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server. |
+| -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option. | 
+| -d,<br> --delimiter,<br> --file-delimiter<br>_Default: ":"_ | The character which separates the username and password in the credentials file. |
+| -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the N-th line. (Skip the first N-1 lines.) |
+| -h,<br> --host | IP or full domain name of the IMAP server. |
+| -P,<br> --port<br>_Default: 143 or<br>993 if **-s** is used_ |  Port on which the IMAP server is listening. |
 | -c,<br> --common-hosts,<br>_Default: False_ | If connecting to host fails, try subdomains such as mail.example.com and imap.example.com |
-| -s,<br> --ssl<br>_Default: False_| Use SSL when connecting to the server |
+| -s,<br> --ssl<br>_Default: False_| Use SSL when connecting to the server. |
 | -t,<br> --timeout<br>_Default: 1_ | Timeout to be used when connecting to the server (in seconds).<br>Anything below 0.5 will result in false-negatives, depending on the server.<br>If using a proxy, specify a higher timeout than normally. |
-| -M,<br> --mailbox,<br> --start-mailbox<br>_Default: 1_ |  Start downloading emails from the N-th mailbox. (Skip the first N-1 mailboxes) |
-| -E,<br> --email,<br> --start-email<br>_Default: 1_ |  Start downloading emails from the N-th email in the mailbox. (Skip the first N-1 emails) |
+| -M,<br> --mailbox,<br> --start-mailbox<br>_Default: 1_ |  Start downloading emails from the N-th mailbox. (Skip the first N-1 mailboxes.) |
+| -E,<br> --email,<br> --start-email<br>_Default: 1_ |  Start downloading emails from the N-th email in the mailbox. (Skip the first N-1 emails.) |
 | -r,<br> --mark-as-read,<br>_Default: False_ | Use this option to mark the emails as read when downloading them. |
-| -l,<br> --login-only<br>_Default: False_ | Just check whether the username and password are valid and don't download any emails |
+| -l,<br> --login-only<br>_Default: False_ | Just check whether the username and password are valid and don't download any emails. |
 | --parts,<br> --email-parts<br>_Default: "all"_ | Specify what parts of the email to download. Options are:<br><table> <tr><td>**headers** or **metadata**</td><td>Email headers</td></tr> <tr><td>**body**</td><td>Email body</td></tr> <tr><td>**attachments**</td><td>Just the email attachments</td></tr> <tr><td>**all**</td><td>Entire email</td></tr></table>|
-| -o,<br> --output-dir<br>_Default: gets value<br>from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory |
-| -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account<br>|
-|    --help   | Shows a help message along with usage info |
+| -o,<br> --output-dir<br>_Default: gets value<br>from **-h** argument_ | Output directory (relative or absolute).<br>Pass an empty string to download emails to the current working directory. |
+| -v,<br> --verbosity-level<br>_Default: 2_ | Verbosity level. Default level is 2. Available levels are:<br>**0** - No messages are printed<br>**1** - A message is printed for each user<br>**2** - A message is printed for each mailbox in the user's account|
+|    --help   | Shows a help message along with usage info. |
 </details>
 
 ### Examples
@@ -68,7 +68,13 @@ python3 imap_email_downloader.py -u "choket@example.com"
 ![Single account download](https://media.giphy.com/media/fubXCYknvt7vHo3kHc/giphy.gif)
 </details>
 
-You can also supply multiple login credentials via a file. The file must contain login info for each account on a separate line:
+
+You can also supply multiple login credentials via a file.
+```bash
+python3 imap_email_downloader.py -f "/home/choket/credentials_file.txt"
+```
+ 
+ The file must contain login info for each account on a separate line:
 ```
 bob@example.com:123456789
 23123412:john@example.com:2019-01-20:secret_password
@@ -81,11 +87,14 @@ This is where the program is most useful -- to download the emails of all accoun
 ### _Note about modern email providers_
 Nowadays, email providers such as Gmail or Yahoo either have IMAP access disabled by default, or require the use of a one-time password to log in if you have 2FA enabled.<br> 
 This one-time password, also known as an _application password_, is different from the password you use to log in and needs to be generated manually.<br>
-The process of generating a one-time password depends on the email provider. Specific details on how to generate one can usually be found on the email provider's website.
+The process of generating a one-time password depends on the email provider. Specific instructions on how to generate one can usually be found on the email provider's website.
 
 ### For developers
-write this
-
+The files that make up this project are split into separate components. Each of these components can be used on its own, and can easily be integrated into different projects.<br>
+The 3 main components are: 
+1. Parsing the user's input: `parse_line.py`
+2. Testing whether the login credentials are valid: `server_login.py`
+3. Downloading the emails after logging in: `imap_email_downloader.py`
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
