@@ -41,14 +41,14 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server. |
 | -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option. | 
 | -d,<br> --delimiter,<br> --file-delimiter<br>_Default: ":"_ | The character which separates the username and password in the credentials file. |
-| -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the N-th line. (Skip the first N-1 lines.) |
+| -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the _N-th_ line. (Skip the first _N-1_ lines.) |
 | -h,<br> --host | IP or full domain name of the IMAP server. |
 | -P,<br> --port<br>_Default: 143 or<br>993 if **-s** is used_ |  Port on which the IMAP server is listening. |
 | -c,<br> --common-hosts,<br>_Default: False_ | If connecting to host fails, try subdomains such as mail.example.com and imap.example.com |
 | -s,<br> --ssl<br>_Default: False_| Use SSL when connecting to the server. |
 | -t,<br> --timeout<br>_Default: 1_ | Timeout to be used when connecting to the server (in seconds).<br>Anything below 0.5 will result in false-negatives, depending on the server.<br>If using a proxy, specify a higher timeout than normally. |
-| -M,<br> --mailbox,<br> --start-mailbox<br>_Default: 1_ |  Start downloading emails from the N-th mailbox. (Skip the first N-1 mailboxes.) |
-| -E,<br> --email,<br> --start-email<br>_Default: 1_ |  Start downloading emails from the N-th email in the mailbox. (Skip the first N-1 emails.) |
+| -M,<br> --mailbox,<br> --start-mailbox<br>_Default: 1_ |  Start downloading emails from the _N-th_ mailbox. (Skip the first _N-1_ mailboxes.) |
+| -E,<br> --email,<br> --start-email<br>_Default: 1_ |  Start downloading emails from the _N-th_ email in the mailbox. (Skip the first _N-1_ emails.) |
 | -r,<br> --mark-as-read,<br>_Default: False_ | Use this option to mark the emails as read when downloading them. |
 | -l,<br> --login-only<br>_Default: False_ | Just check whether the username and password are valid and don't download any emails. |
 | --parts,<br> --email-parts<br>_Default: "all"_ | Specify what parts of the email to download. Options are:<br><table> <tr><td>**headers** or **metadata**</td><td>Email headers</td></tr> <tr><td>**body**</td><td>Email body</td></tr> <tr><td>**attachments**</td><td>Just the email attachments</td></tr> <tr><td>**all**</td><td>Entire email</td></tr></table>|
@@ -95,6 +95,10 @@ The 3 main components are:
 1. Parsing the user's input: `parse_line.py`
 2. Testing whether the login credentials are valid: `server_login.py`
 3. Downloading the emails after logging in: `imap_email_downloader.py`
+
+There is also a script, `email_listener.py`, that will search for existing and incoming emails that match a criteria, and then apply a callback function to those emails.<br>
+An example of how to use this script is given in `github_email_listener.py`
+
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
