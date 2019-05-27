@@ -62,7 +62,7 @@ def main():
     email_listener(
         server=server,
         mailbox="INBOX",
-        search_criteria="FROM github",
+        search_criteria="FROM github",  # See RFC 3501 for info about the search criteria
         callback_function=save_and_delete,
         callback_kw_arguments={
             "server": server,
