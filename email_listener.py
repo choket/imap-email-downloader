@@ -7,7 +7,7 @@ import time
 from typing import Optional, Union, List, Callable, Tuple, Dict
 
 
-def email_listen(
+def email_listener(
 		server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
 		mailbox: str,
 		search_criteria: Union[str, List[str]],

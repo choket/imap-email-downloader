@@ -7,7 +7,7 @@
 import datetime
 import os
 
-from email_listener import email_listen
+from email_listener import email_listener
 from server_login import server_login
 
 
@@ -43,7 +43,7 @@ def main():
         password="12345678"  # Change this to your password
     )
 
-    email_listen(
+    email_listener(
         server=server,
         mailbox="INBOX",
         search_criteria="FROM github",
