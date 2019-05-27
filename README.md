@@ -40,10 +40,10 @@ _Keep in mind that you need to be running python 3.5 or newer for the program to
 | **-u,<br> --user,<br> --username<br>_Required_** |  Username or complete credentials.<br>The username can either be the full email: `bob@example.com` or just the username: `bob`<br>Or it can contain the email address and password, separated by `:` along with other data commonly found in database dumps<br>If you are entering just the username, then you will also need to enter the host via the **-h** argument|
 | -p,<br> --pass,<br> --password | Password. If omitted you will be prompted to enter it when connecting to the server |
 | -f,<br> --file | Credentials file.<br>A file containing login credentials in the form of `username:password`<br>or `username@example.com:password` separated by newlines<br>You can specify a custom delimiter instead of `:` by using the **-d** option | 
-| -d,<br> --delimiter,<br> --file-delimiter | The character which separates the username and password in the credentials file |
+| -d,<br> --delimiter,<br> --file-delimiter<br>_Default: ":"_ | The character which separates the username and password in the credentials file |
 | -L,<br> --line,<br> --start-line<br>_Default: 1_ |  Start parsing the credentials file from the N-th line. (Skip the first N-1 lines) |
 | -h,<br> --host | IP or full domain name of the IMAP server |
-| -P,<br> --port |  Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used) |
+| -P,<br> --port<br>_Default: 143<br> or 993 if **-s** is used |  Port on which the IMAP server is listening. Default is 143 (or 993 if -s is used) |
 | -c,<br> --common-hosts,<br>_Default: False_ | If connecting to host fails, try subdomains such as mail.example.com and imap.example.com |
 | -s,<br> --ssl<br>_Default: False_| Use SSL when connecting to the server |
 | -t,<br> --timeout<br>_Default: 1_ | Timeout to be used when connecting to the server (in seconds).<br>Anything below 0.5 will result in false-negatives, depending on the server.<br>If using a proxy, specify a higher timeout than normally. |
