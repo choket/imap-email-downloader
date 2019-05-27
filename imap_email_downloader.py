@@ -126,7 +126,7 @@ def _download_email_attachments(
 		try:
 			os.makedirs(output_dir, exist_ok=True)
 		except PermissionError:
-			raise PermissionError("Could not create {}, invalid permissions\n".format(output_dir))
+			raise PermissionError("Could not create {}, invalid permissions".format(output_dir))
 
 		output_location = os.path.join(output_dir, attachment_name).decode(charset, errors="ignore")
 		try:
@@ -257,7 +257,7 @@ def scrape_emails(
 		try:
 			os.makedirs(mailbox_output_directory, exist_ok=True)
 		except PermissionError:
-			raise PermissionError("Could not create {}, invalid permissions\n".format(mailbox_output_directory))
+			raise PermissionError("Could not create {}, invalid permissions".format(mailbox_output_directory))
 
 		response, emails_data = server.search(None, "ALL")
 
