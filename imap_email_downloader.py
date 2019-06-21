@@ -192,7 +192,7 @@ def scrape_emails(
 
 	# Reset the connection timeout back to default value, now that we are already logged in
 	# When initially connecting to a server, the timeout is set to a low value, around 1 second
-	server.sock.settimeout(15)  # Going to suck my dick now
+	server.sock.settimeout(15)
 
 	try:
 		response, mailboxes = server.list()
