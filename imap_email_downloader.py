@@ -54,7 +54,7 @@ def _count_lines(filename: str):
 
 def _download_email_attachments(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
                                 email_number: str,
-                                output_dir: Optional[str] = "attachments"):
+                                output_dir: Optional[str] = "attachments") -> None:
     """Download the attachments of an email
 
     :param server: imaplib object which is logged in and has a mailbox selected
@@ -142,7 +142,7 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
                   start_mailbox: Optional[int] = 1,
                   start_email: Optional[int] = 1,
                   output_dir: Optional[str] = None,
-                  verbosity_level: Optional[int] = 2):
+                  verbosity_level: Optional[int] = 2) -> None:
     """Download all the emails in an email account via IMAP access
 
     :param server: imaplib object which is logged in, and has the username or email used to log in set in custom attribute called "username_or_email"
@@ -324,7 +324,7 @@ def batch_scrape(file: str,
                  email_parts: Optional[str] = "all",
                  output_dir: Optional[str] = None,
                  timeout: Optional[Union[float, int]] = 1.0,
-                 verbosity_level: Optional[int] = 2):
+                 verbosity_level: Optional[int] = 2) -> None:
     """Download all the emails of multiple email accounts written in a file via IMAP. Downloaded emails are saved under `output_dir/username/mailbox_name/`
 
     :param file:
@@ -352,7 +352,7 @@ def batch_scrape(file: str,
         0) No messages are printed
         1) A message is printed for each user
         2) A message is printed for each mailbox in the user's account
-    :return:
+    :return: None
     """
     invalid_hosts = set()
     valid_hosts = set()

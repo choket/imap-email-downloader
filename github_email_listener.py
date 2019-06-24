@@ -16,7 +16,7 @@ from server_login import server_login
 def save_and_delete(email_index: str,
                     server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
                     mailbox: str,
-                    output_dir: Optional[str] = ""):
+                    output_dir: Optional[str] = "") -> None:
     """
     Function that downloads an email, and then deletes in on the remote server.
 
@@ -50,10 +50,8 @@ def save_and_delete(email_index: str,
 
 
 def main():
-    server = server_login(
-        user_or_email_or_combo="bob@example.com",  # Change this to your email
-        password="12345678"  # Change this to your password
-    )
+    server = server_login(user_or_email_or_combo="bob@example.com",  # Change this to your email
+                          password="12345678")  # Change this to your password
 
     output_dir = "C:\\Users\\Stefan\\Github emails"
 

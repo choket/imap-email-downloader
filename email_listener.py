@@ -13,7 +13,7 @@ def email_listener(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
                    sleep_timer: Optional[Union[float, int]] = 10.0,
                    callback_function: Optional[Callable] = print,
                    callback_arguments: Optional[Union[List, Tuple]] = (),
-                   callback_kw_arguments: Optional[Dict] = {}):
+                   callback_kw_arguments: Optional[Dict] = {}) -> None:
     """
     Setup an email listener which will search for existing and incoming emails that match a criterion,
     and then apply a callback function to those emails. *IMPORTANT: the first argument supplied to the callback function is the email index*
