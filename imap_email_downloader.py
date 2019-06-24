@@ -128,7 +128,7 @@ def _download_email_attachments(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         try:
             attachment_file = open(output_location, "wb")
         except IOError as e:
-            sys.stderr.write("Could not write to attachment file. Reason:" + str(e) + "\n")
+            print("Could not write to attachment file. Reason:" + str(e), file=sys.stderr)
         else:
             with attachment_file:
                 attachment_file.write(attachment_raw_data)
@@ -180,7 +180,7 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         output_dir = server.host
 
     if verbosity_level >= 1:
-        sys.stdout.write("Downloading emails of {}\n".format(username))
+        print("Downloading emails of {}".format(username))
 
     # Reset the connection timeout back to default value, now that we are already logged in
     # When initially connecting to a server, the timeout is set to a low value, around 1 second
@@ -209,7 +209,7 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         # Downloading email attachments is handled below at the server.fetch() line
         pass
     else:
-        sys.stderr.write("Invalid parts to download, defaulting to all!\n")
+        print("Invalid parts to download, defaulting to all!", file=sys.stderr)
         imap_email_parts = "BODY[]"
 
     for i_mailbox, imap_mailbox in enumerate(mailboxes, 1):
@@ -226,8 +226,7 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         response, num_emails_data = server.select(mailbox_name, readonly=not mark_as_read)
 
         if response != "OK":
-            msg = "\t({}/{}) Error selecting mailbox {} | Reason: {}\n".format(i_mailbox, num_mailboxes, imap_mailbox.decode(errors="replace"), num_emails_data[0].decode(errors="replace"))
-            sys.stdout.write(msg)
+            print("\t({}/{}) Error selecting mailbox {} | Reason: {}".format(i_mailbox, num_mailboxes, imap_mailbox.decode(errors="replace"), num_emails_data[0].decode(errors="replace")))
             # raise server_error(msg)
             continue
 
@@ -252,8 +251,7 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         response, emails_data = server.search(None, "ALL")
 
         if response != "OK":
-            msg = "Error searching for emails in mailbox: {}\n".format(imap_mailbox.decode(errors="replace"))
-            sys.stderr.write(msg)
+            print("Error searching for emails in mailbox: {}".format(imap_mailbox.decode(errors="replace")), file=sys.stderr)
             # raise server_error(msg)
             continue
 
@@ -266,9 +264,9 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
                 continue
 
             if verbosity_level == 2:
-                sys.stdout.write(
-                    "\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, num_emails, i, num_emails))
-                sys.stdout.flush()
+                print("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, num_emails, i, num_emails),
+                      end="",
+                      flush=True)
 
             if email_parts == "attachments":
                 num_attachments = _download_email_attachments(server=server, email_number=i, output_dir=os.path.join(output_dir, mailbox_name, i))
@@ -277,14 +275,14 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
             try:
                 response, fetched_parts = server.fetch(i, "(FLAGS {})".format(imap_email_parts))
             except imap_server_errors as e:
-                msg = "\nError downloading email {}\n".format(i)
-                sys.stderr.write(msg)
+                msg = "\nError downloading email {}".format(i)
+                print(msg, file=sys.stderr)
                 # raise server_error(msg)
                 continue
 
             if response != "OK":
-                msg = "\nError downloading email {}\n".format(i)
-                sys.stderr.write(msg)
+                msg = "\nError downloading email {}".format(i)
+                print(msg, file=sys.stderr)
                 # raise server_error(msg)
                 continue
 
@@ -302,12 +300,13 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
         else:
             # Check if there are no emails in mailbox
             if not emails and verbosity_level == 2:
-                sys.stdout.write("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, 0, 0, 0))
-                sys.stdout.flush()
+                print("\t({}/{}) Downloading mailbox: {} | {} Total emails | ({}/{})\r".format(str(i_mailbox).zfill(len(str(num_mailboxes))), num_mailboxes, mailbox_name, 0, 0, 0),
+                      end="",
+                      flush=True)
 
             if verbosity_level == 2:
                 # Print newline to compensate for the last \r
-                sys.stdout.write("\n")
+                print("")
 
 
 def batch_scrape(file: str,
@@ -367,7 +366,7 @@ def batch_scrape(file: str,
     try:
         credentials_file = open(file, "r", encoding="utf-8", errors="ignore")
     except IOError as e:
-        sys.stderr.write("Could not open input file. Reason:" + str(e) + "\n")
+        print("Could not open input file. Reason: " + str(e), file=sys.stderr)
     else:
         with credentials_file:
             # Skip to the line specified in start_line
@@ -409,8 +408,7 @@ def batch_scrape(file: str,
 
                     if verbosity_level >= 1:
                         # Pad the line index to be the same width as the total number of lines
-                        sys.stdout.write("({}/{}) | ".format(str(i + start_line).zfill(len(str(num_lines))), num_lines))
-                        sys.stdout.flush()
+                        print("({}/{}) | ".format(str(i + start_line).zfill(len(str(num_lines))), num_lines), end="", flush=True)
 
                     # Connect to the server
                     try:
@@ -425,7 +423,7 @@ def batch_scrape(file: str,
                     except EmailConnectionError as error:
                         # Could not connect to host
                         if verbosity_level >= 1:
-                            sys.stdout.write(str(error) + "\n")
+                            print(str(error))
 
                         if error.host not in valid_hosts:
                             invalid_hosts.add(error.host)
@@ -435,14 +433,14 @@ def batch_scrape(file: str,
                         # Invalid login details
 
                         if verbosity_level >= 1:
-                            sys.stdout.write(str(error) + "\n")
+                            print(str(error))
 
                         break
                     except Exception as e:
                         # Catch any unhandled exceptions and write them to a log file
                         # The script should continue parsing the credentials file until the end, regardless if an exception happened
-                        msg = "An unhandled exception occurred at line {}:\n{}\n".format(i + start_line, str(e))
-                        sys.stderr.write(msg)
+                        msg = "An unhandled exception occurred at line {}:\n{}".format(i + start_line, str(e))
+                        print(msg, file=sys.stderr)
 
                         with open(os.path.join(output_dir, "error_log.txt"), "a") as log:
                             log.write(msg + "\n")
@@ -453,12 +451,12 @@ def batch_scrape(file: str,
 
                         if login_only:
                             if verbosity_level >= 1:
-                                sys.stdout.write("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"] + "\n")
+                                print("Valid credentials: " + credentials["email"] + file_delimiter + credentials["password"])
 
                             try:
                                 output_file = open(output_dir, "a")
                             except IOError as e:
-                                sys.stderr.write("Could not open output file. Reason:" + str(e) + "\n")
+                                print("Could not open output file. Reason:" + str(e), file=sys.stderr)
                             else:
                                 with output_file:
                                     output_file.write(credentials["email"] + file_delimiter + credentials["password"] + "\n")
@@ -475,7 +473,7 @@ def batch_scrape(file: str,
                             verbosity_level=verbosity_level
                         )
                     except (EmailServerError, PermissionError) as error:
-                        sys.stderr.write(str(error) + "\n")
+                        print(str(error), file=sys.stderr)
 
                     break
 
@@ -605,7 +603,7 @@ def main():
                           verbosity_level=verbosity_level)
 
         except EmailDownloaderErrors as error:
-            sys.stderr.write(str(error) + "\n")
+            print(str(error), file=sys.stderr)
 
 
 if __name__ == "__main__":
@@ -613,5 +611,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        sys.stdout.write("\nQuitting...\n")
-    sys.stdout.write("Finished in {} seconds\n".format(round(time.time() - start_time, 3)))
+        print("\nQuitting...")
+    print("Finished in {} seconds".format(round(time.time() - start_time, 3)))

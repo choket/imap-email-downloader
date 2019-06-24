@@ -126,9 +126,9 @@ def server_login(user_or_email_or_combo: str,
 
             if try_common_hosts:
                 if test_host == possible_hosts[0]:
-                    sys.stderr.write("Trying common server variations...\n")
+                    print("Trying common server variations...", file=sys.stderr)
                 elif test_host == possible_hosts[-1]:
-                    sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
+                    print("Couldn't find any variations, exiting", file=sys.stderr)
                     raise EmailConnectionError(test_host, msg)
             else:
                 raise EmailConnectionError(test_host, msg)
@@ -208,11 +208,11 @@ def main():
                      try_common_hosts=try_common_hosts,
                      timeout=timeout)
     except EmailLoginError:
-        sys.stdout.write("Invalid!\n")
+        print("Invalid!")
     except EmailDownloaderErrors as error:
-        sys.stdout.write(str(error) + "\n")
+        print(str(error))
     else:
-        sys.stdout.write("Valid!\n")
+        print("Valid!")
 
 
 if __name__ == "__main__":

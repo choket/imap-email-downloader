@@ -90,7 +90,7 @@ def main():
         print("Password:", credentials["password"])
         print("Username:", credentials["username"])
     else:
-        sys.stderr.write("Could not extract email and password!\n")
+        print("Could not extract email and password!", file=sys.stderr)
 
 
 if __name__ == "__main__":
