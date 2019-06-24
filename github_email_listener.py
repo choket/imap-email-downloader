@@ -13,12 +13,10 @@ from email_listener import email_listener
 from server_login import server_login
 
 
-def save_and_delete(
-        email_index: str,
-        server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
-        mailbox: str,
-        output_dir: Optional[str] = ""
-):
+def save_and_delete(email_index: str,
+                    server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
+                    mailbox: str,
+                    output_dir: Optional[str] = ""):
     """
     Function that downloads an email, and then deletes in on the remote server.
 
@@ -59,17 +57,15 @@ def main():
 
     output_dir = "C:\\Users\\Stefan\\Github emails"
 
-    email_listener(
-        server=server,
-        mailbox="INBOX",
-        search_criteria="FROM github",  # See RFC 3501 for info about the search criteria
-        callback_function=save_and_delete,
-        callback_kw_arguments={
-            "server": server,
-            "mailbox": "INBOX",
-            "output_dir": output_dir
-        }
-    )
+    email_listener(server=server,
+                   mailbox="INBOX",
+                   search_criteria="FROM github",  # See RFC 3501 for info about the search criteria
+                   callback_function=save_and_delete,
+                   callback_kw_arguments={
+                       "server": server,
+                       "mailbox": "INBOX",
+                       "output_dir": output_dir
+                   })
 
 
 if __name__ == "__main__":
