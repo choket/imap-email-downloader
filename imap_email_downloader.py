@@ -21,10 +21,10 @@ import time
 from typing import Union, Optional
 
 from parse_line import parse_line
-from server_login import server_login, email_scraper_errors, login_error, connection_error
+from server_login import server_login, EmailDownloaderErrors, EmailLoginError, EmailConnectionError
 
 
-class server_error(email_scraper_errors):
+class EmailServerError(EmailDownloaderErrors):
     def __init__(self, message):
         self.message = message
 
@@ -121,8 +121,8 @@ def _download_email_attachments(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
 
         try:
             os.makedirs(output_dir, exist_ok=True)
-        except PermissionError:
-            raise PermissionError("Could not create {}, invalid permissions".format(output_dir))
+        except PermissionError as e:
+            raise PermissionError("Could not create {}, invalid permissions".format(output_dir)) from e
 
         output_location = os.path.join(output_dir, attachment_name).decode(charset, errors="ignore")
         try:
@@ -168,18 +168,16 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
     # Classes used to catch imaplib exceptions
     imap_server_errors = (imaplib.IMAP4.error, imaplib.IMAP4_SSL.error)
 
+
     # username_or_email is a custom property of imaplib's object that is set when logging in in server_login() function
-    username_or_email = server.username_or_email
-
-    if "@" in username_or_email:
-        username = username_or_email.split("@")[0]
+    if "@" in server.username_or_email:
+        username = server.username_or_email.split("@")[0]
     else:
-        username = username_or_email
+        username = server.username_or_email
 
-    host = server.host
 
     if output_dir is None:
-        output_dir = host
+        output_dir = server.host
 
     if verbosity_level >= 1:
         sys.stdout.write("Downloading emails of {}\n".format(username))
@@ -191,10 +189,10 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
     try:
         response, mailboxes = server.list()
     except imap_server_errors:
-        raise server_error("Error getting mailboxes from server")
+        raise EmailServerError("Error getting mailboxes from server")
 
     if response != "OK":
-        raise server_error("Error getting mailboxes from server")
+        raise EmailServerError("Error getting mailboxes from server")
 
     num_mailboxes = len(mailboxes)
 
@@ -248,8 +246,8 @@ def scrape_emails(server: Union[imaplib.IMAP4, imaplib.IMAP4_SSL],
 
         try:
             os.makedirs(mailbox_output_directory, exist_ok=True)
-        except PermissionError:
-            raise PermissionError("Could not create {}, invalid permissions".format(mailbox_output_directory))
+        except PermissionError as e:
+            raise PermissionError("Could not create {}, invalid permissions".format(mailbox_output_directory)) from e
 
         response, emails_data = server.search(None, "ALL")
 
@@ -424,7 +422,7 @@ def batch_scrape(file: str,
                             use_ssl=use_ssl,
                             timeout=timeout
                         )
-                    except connection_error as error:
+                    except EmailConnectionError as error:
                         # Could not connect to host
                         if verbosity_level >= 1:
                             sys.stdout.write(str(error) + "\n")
@@ -433,7 +431,7 @@ def batch_scrape(file: str,
                             invalid_hosts.add(error.host)
 
                         continue
-                    except login_error as error:
+                    except EmailLoginError as error:
                         # Invalid login details
 
                         if verbosity_level >= 1:
@@ -476,7 +474,7 @@ def batch_scrape(file: str,
                             output_dir=os.path.join(output_dir, test_host, credentials["username"]),
                             verbosity_level=verbosity_level
                         )
-                    except (server_error, PermissionError) as error:
+                    except (EmailServerError, PermissionError) as error:
                         sys.stderr.write(str(error) + "\n")
 
                     break
@@ -606,7 +604,7 @@ def main():
                           output_dir=output_dir,
                           verbosity_level=verbosity_level)
 
-        except email_scraper_errors as error:
+        except EmailDownloaderErrors as error:
             sys.stderr.write(str(error) + "\n")
 
 

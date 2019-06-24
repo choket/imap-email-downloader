@@ -14,10 +14,10 @@ from typing import Optional, Union
 from parse_line import parse_line
 
 
-class email_scraper_errors(Exception): pass
+class EmailDownloaderErrors(Exception): pass
 
 
-class host_missing(email_scraper_errors):
+class EmailHostMissing(EmailDownloaderErrors):
 
     def __init__(self, message):
         self.message = message
@@ -26,7 +26,7 @@ class host_missing(email_scraper_errors):
         return self.message
 
 
-class connection_error(email_scraper_errors):
+class EmailConnectionError(EmailDownloaderErrors):
 
     def __init__(self, host, message):
         self.host = host
@@ -36,7 +36,7 @@ class connection_error(email_scraper_errors):
         return self.message
 
 
-class login_error(email_scraper_errors):
+class EmailLoginError(EmailDownloaderErrors):
 
     def __init__(self, username, password, message):
         self.username = username
@@ -92,7 +92,7 @@ def server_login(user_or_email_or_combo: str,
         if "@" in user_or_email:
             host = user_or_email.split("@", 1)[1]
         else:
-            raise host_missing("Host must be supplied when using just a username and not a full email address")
+            raise EmailHostMissing("Host must be supplied when using just a username and not a full email address")
 
     # The schema is not needed and contains invalid filename characters, so remove it
     host = host.replace("http://", "").replace("https://", "")
@@ -129,9 +129,9 @@ def server_login(user_or_email_or_combo: str,
                     sys.stderr.write("Trying common server variations...\n")
                 elif test_host == possible_hosts[-1]:
                     sys.stderr.write("Couldn't find any variations, exiting\n".format(test_host))
-                    raise connection_error(test_host, msg)
+                    raise EmailConnectionError(test_host, msg)
             else:
-                raise connection_error(test_host, msg)
+                raise EmailConnectionError(test_host, msg)
 
     try:
         server.enable("UTF-8=ACCEPT")
@@ -151,7 +151,7 @@ def server_login(user_or_email_or_combo: str,
         server.login(username, password)
     except (*timeout_errors, *imap_server_errors):
         msg = "Incorrect details: {}".format(user_or_email)
-        raise login_error(user_or_email, password, msg)
+        raise EmailLoginError(user_or_email, password, msg)
 
     # Add username_or_email to the server object which is later used by scrape_emails()
     setattr(server, "username_or_email", user_or_email)
@@ -207,9 +207,9 @@ def main():
                      use_ssl=ssl,
                      try_common_hosts=try_common_hosts,
                      timeout=timeout)
-    except login_error:
+    except EmailLoginError:
         sys.stdout.write("Invalid!\n")
-    except email_scraper_errors as error:
+    except EmailDownloaderErrors as error:
         sys.stdout.write(str(error) + "\n")
     else:
         sys.stdout.write("Valid!\n")
